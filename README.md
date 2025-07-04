@@ -21,4 +21,4 @@ In addition, it implements `hinter-helper`, a simple CLI tool that you use in a 
 `hinter-cline` extends the [`hinter-core-data/` structure of `hinter-core`](https://github.com/bbenligiray/hinter-core?tab=readme-ov-file#hinter-core-data) by adding:
 
 - `entries/`: A directory for your private knowledge base, including report drafts.
-- `.git/`:[Git](https://git-scm.com/) directory containing the `hinter-core-data/` version history.
+- `.git/`:A [Git](https://git-scm.com/) directory containing the `hinter-core-data/` version history.

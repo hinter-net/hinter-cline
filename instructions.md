@@ -30,7 +30,7 @@ There are two important concepts to know about Cline:
 
 ### Plan/Act toggle button
 
-You can chat with the AI about the contents of your repo in Plan Mode.
+You can chat with Cline about the contents of your repo in Plan Mode.
 For Cline to make changes (for example, to help you write a report draft), you will need to switch to Act Mode.
 Switching between Plan and Act Mode retains the context, so you will likely want to switch between the two during use.
 
@@ -38,4 +38,4 @@ Switching between Plan and Act Mode retains the context, so you will likely want
 
 Whenever you want Cline to start as a clean slate, start a new task (for example, by clicking the plus sign on the Cline extension).
 Doing this between independent hinter workflows will cause Cline to perform in a more consistent manner.
-However, you may want to continue using the same task during multiple dependent hinter workflows, such as revising the same report multiple times.
+However, you may want to continue using the same task during multiple dependent workflows, such as revising the same report multiple times.
