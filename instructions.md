@@ -1,6 +1,6 @@
 # Instructions
 
-This repo is designed to work across all operating systems and be accessible to non-technical users.
+This project is designed to work across all operating systems and be accessible to non-technical users.
 
 ## Installation
 
@@ -13,12 +13,10 @@ This repo is designed to work across all operating systems and be accessible to 
     docker run -d --name my-hinter-cline --restart=always -p8080:8080 -v"$(pwd)/hinter-core-data":/app/hinter-core-data bbenligiray/hinter-cline:0.0.1
     ```
 
-4. TODO: Initialize
+4. Open your browser and navigate to [`localhost:8080`](http://localhost:8080) to see the VS Code interface.
+    Since `hinter-cline` is running in always restart mode, VS Code will always be available at `localhost:8080`, even after you restart your machine.
 
-5. Open your browser and navigate to [localhost:8080](http://localhost:8080).
-    You should see the VS Code interface, which you will use to interact with the AI assistant.
-
-6. Click the Cline icon on the VS Code sidebar.
+5. Click the Cline icon on the VS Code sidebar.
     Select an API provider and enter your API key.
 
     If you are not a paid subscriber to any of these API providers:
@@ -28,12 +26,12 @@ This repo is designed to work across all operating systems and be accessible to 
 
 ## Working with Cline
 
-There are two important concepts to be aware of while using Cline:
+There are two important concepts to know about Cline:
 
 ### Plan/Act toggle button
 
 You can chat with the AI about the contents of your repo in Plan Mode.
-For Cline to make changes (for example, to execute predefined hinter workflows), you will need to switch to Act Mode.
+For Cline to make changes (for example, to help you write a report draft), you will need to switch to Act Mode.
 Switching between Plan and Act Mode retains the context, so you will likely want to switch between the two during use.
 
 ### Tasks
