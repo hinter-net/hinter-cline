@@ -10,14 +10,7 @@ The user will drive the process, and you will provide support by searching, synt
 ## 2. Key Data Stores
 The user's information is organized into three main areas. You are expected to navigate and reference these as the primary sources of truth.
 
-*   **`entries/pinned/`**: This is the user's primary knowledge base, similar to a personal wiki.
-    *   It contains persistent, curated, and up-to-date information.
-    *   The directory structure is not flat; you can navigate through subdirectories.
-    *   Start with `entries/pinned/README.md` if it exists, as it may serve as a table of contents.
-
-*   **`entries/`**: This directory holds regular, timestamped report drafts.
-    *   These are more ephemeral than pinned entries.
-    *   You might reference them to see the history of reports.
+*   **`entries/`**: This is the user's private knowledge base, which includes their report drafts. You should consider its contents the primary source of truth for the user's own information.
 
 *   **`peers/{alias}/incoming/`**: This directory contains reports received from peers.
     *   The `pinned/` subdirectory within an incoming peer directory holds persistent, curated reports from that peer. Treat this as a key source of information about the peer's knowledge.
@@ -29,8 +22,7 @@ If the user asks for one of these actions, inform them that they should use `hin
 
 `hinter-helper` is responsible for:
 *   Adding, editing, or removing peers.
-*   Managing peer groups.
-*   Creating new report drafts (both pinned and regular).
+*   Creating report drafts.
 *   Posting reports to peers.
 
 ## 4. Your Role & Workflow
