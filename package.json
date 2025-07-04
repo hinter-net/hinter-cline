@@ -1,7 +1,7 @@
 {
   "name": "hinter-cline",
   "version": "0.0.1",
-  "description": "",
+  "description": "AI-assisted environment for hinter operations",
   "license": "MIT",
   "repository": {
     "type": "git",
