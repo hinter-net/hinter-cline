@@ -16,6 +16,8 @@ if [ -d "$HINTER_DATA_DIR" ]; then
         echo "Initializing $HINTER_DATA_DIR as a git repository..."
         cd "$HINTER_DATA_DIR"
         git init
+        git add .
+        git commit -m "Initial commit"
         echo "Git repository initialized successfully"
     else
         echo "Git repository already exists in $HINTER_DATA_DIR"
@@ -47,6 +49,9 @@ Thumbs.db
 *.tmp
 *.temp
 *~
+
+# Environment files
+.env
 EOF
         echo ".gitignore file created"
     else
