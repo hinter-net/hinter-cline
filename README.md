@@ -1,7 +1,7 @@
 # `hinter-cline`
 
 - **Hinters** use collect intelligence, compose personalized reports for other hinters, and exchange these reports using [`hinter-core`.](https://github.com/bbenligiray/hinter-core)
-- **`hinter-cline`** is an AI-assisted environment that hinters use as a sidecar to [`hinter-core`](https://github.com/bbenligiray/hinter-core) to process information and compose reports.
+- **`hinter-cline`** is an AI-assisted environment that hinters use as a companion to [`hinter-core`](https://github.com/bbenligiray/hinter-core) to process information and compose reports.
 
 See [instructions](./instructions.md) to run `hinter-cline` in a Docker container.
 
