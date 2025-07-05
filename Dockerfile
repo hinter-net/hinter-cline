@@ -24,4 +24,8 @@ RUN npm i
 COPY .clinerules/ ./.clinerules/
 COPY ai/ ./ai/
 
-CMD ["code-server", "--auth", "none", "--disable-telemetry", "--bind-addr", "0.0.0.0:8080", "/app"]
+# Copy startup script and make it executable
+COPY startup.sh /app/startup.sh
+RUN chmod +x /app/startup.sh
+
+CMD ["/app/startup.sh"]
