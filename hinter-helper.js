@@ -49,8 +49,8 @@ async function getPeerAliases(peersPath) {
 function displayPeers(peers) {
     let output = '';
     peers.forEach((peer, index) => {
-        output += `${(index + 1).toString().padEnd(4)}${peer.padEnd(20)}`;
-        if ((index + 1) % 5 === 0) {
+        output += `[${index + 1}]`.padEnd(5) + `${peer.padEnd(20)}`;
+        if ((index + 1) % 4 === 0) { // Adjusted to 4 for better alignment with brackets
             output += '\n';
         }
     });
