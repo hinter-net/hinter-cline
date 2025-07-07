@@ -23,7 +23,6 @@ COPY package*.json .
 RUN npm i
 COPY .clinerules/ ./.clinerules/
 COPY .clineignore ./.clineignore
-COPY ai/ ./ai/
 
 # Copy startup script and make it executable
 COPY startup.sh /app/startup.sh
