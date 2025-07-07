@@ -2,6 +2,21 @@ const fs = require('fs').promises;
 const path = require('path');
 const { question, isValidSlug, isValidPublicKey, displayPeers } = require('./utils');
 
+async function getPeerConfig(peerPath) {
+    try {
+        const configPath = path.join(peerPath, 'hinter.config.json');
+        const content = await fs.readFile(configPath, 'utf8');
+        return JSON.parse(content);
+    } catch (e) {
+        return {}; // Return empty object if config doesn't exist or is invalid
+    }
+}
+
+async function updatePeerConfig(peerPath, newConfig) {
+    const configPath = path.join(peerPath, 'hinter.config.json');
+    await fs.writeFile(configPath, JSON.stringify(newConfig, null, 2));
+}
+
 async function getPeerAliases(peersPath) {
     try {
         const dirents = await fs.readdir(peersPath, { withFileTypes: true });
@@ -32,6 +47,14 @@ async function addPeer(peersPath) {
     if (!isValidPublicKey(publicKey)) {
         console.log('Invalid public key format.');
         return;
+    }
+
+    for (const peer of existingPeers) {
+        const config = await getPeerConfig(path.join(peersPath, peer));
+        if (config.publicKey === publicKey) {
+            console.log(`Error: This public key is already used by peer '${peer}'.`);
+            return;
+        }
     }
 
     const peerPath = path.join(peersPath, alias);
@@ -78,10 +101,20 @@ async function managePeer(peersPath) {
             console.log('Invalid public key format.');
             return;
         }
-        await fs.writeFile(
-            path.join(peersPath, alias, 'hinter.config.json'),
-            JSON.stringify({ publicKey: newPublicKey }, null, 2)
-        );
+
+        const allPeers = await getPeerAliases(peersPath);
+        for (const peer of allPeers) {
+            if (peer === alias) continue; // Don't check against the peer being edited
+            const config = await getPeerConfig(path.join(peersPath, peer));
+            if (config.publicKey === newPublicKey) {
+                console.log(`Error: This public key is already used by peer '${peer}'.`);
+                return;
+            }
+        }
+
+        const config = await getPeerConfig(path.join(peersPath, alias));
+        config.publicKey = newPublicKey;
+        await updatePeerConfig(path.join(peersPath, alias), config);
         console.log(`Public key for '${alias}' updated.`);
     } else if (editChoice === '3') {
         const confirm = await question(`Are you sure you want to delete peer '${alias}'? (y/[n]): `);
@@ -99,5 +132,7 @@ async function managePeer(peersPath) {
 module.exports = {
     getPeerAliases,
     addPeer,
-    managePeer
+    managePeer,
+    getPeerConfig,
+    updatePeerConfig
 };

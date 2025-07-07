@@ -1,22 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { question, isValidSlug, displayPeers } = require('./utils');
-const { getPeerAliases } = require('./peer');
-
-async function getPeerConfig(peerPath) {
-    try {
-        const configPath = path.join(peerPath, 'hinter.config.json');
-        const content = await fs.readFile(configPath, 'utf8');
-        return JSON.parse(content);
-    } catch (e) {
-        return {}; // Return empty object if config doesn't exist or is invalid
-    }
-}
-
-async function updatePeerConfig(peerPath, newConfig) {
-    const configPath = path.join(peerPath, 'hinter.config.json');
-    await fs.writeFile(configPath, JSON.stringify(newConfig, null, 2));
-}
+const { getPeerAliases, getPeerConfig, updatePeerConfig } = require('./peer');
 
 async function getAllGroups(peersPath) {
     const groups = new Map();
