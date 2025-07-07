@@ -14,7 +14,7 @@ You will be presented with a menu of options.
 
 ## Menu Options
 
-1.  **Create a report draft:** Helps you create a new report draft `.md` file within the `hinter-core-data/entries/` directory.
+1.  **Create a report draft:** Interactively helps you create a new report draft. It will prompt you for a title and then allow you to select recipients (`to` and `except` lists) from a list of all known peers and groups.
 2.  **Post reports:** Scans the `hinter-core-data/entries/` directory for all report drafts and posts them to peers according to the rules in their frontmatter.
 3.  **Add a peer:** Prompts you to add a new peer by providing a unique, "slugified" alias and their 64-character public key.
 4.  **Manage a peer:** Allows you to select a peer from a list and then choose to either change their alias, update their public key, or delete the peer entirely.
@@ -29,9 +29,9 @@ You can organize peers into groups to make sending reports to multiple peers eas
 ## Report Draft Frontmatter
 
 The core of the reporting system is the YAML frontmatter at the top of each report draft (`.md`) file.
-This block of text contains the instructions for the `Post all reports` command.
+When you use the "Create a report draft" option, the `to` and `except` fields are populated for you based on your interactive selections. The other fields are given default values that you can edit manually.
 
-All fields are required.
+All fields are required for posting.
 
 ```yaml
 ---

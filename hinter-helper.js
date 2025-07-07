@@ -34,13 +34,34 @@ function isValidPublicKey(key) {
 
 // --- Report Management ---
 
-async function createDraft(entriesPath) {
+async function createDraft(peersPath, entriesPath) {
     console.log('\n--- Create a Report Draft ---');
     const title = await question('Enter report title: ');
     if (!title) {
         console.log('Title cannot be empty.');
         return;
     }
+
+    const allPeers = await getPeerAliases(peersPath);
+    const allGroups = await getAllGroups(peersPath);
+    const allGroupNames = Array.from(allGroups.keys());
+    
+    const availableRecipients = [...allGroupNames.map(g => `group:${g}`), ...allPeers];
+    
+    console.log('Available recipients:');
+    availableRecipients.forEach((r, i) => console.log(`[${i + 1}] ${r}`));
+
+    const toChoices = await question('Select recipients for "to" list (comma-separated numbers): ');
+    const toIndices = toChoices.split(',').map(n => parseInt(n.trim(), 10) - 1);
+    const to = toIndices
+        .filter(i => !isNaN(i) && i >= 0 && i < availableRecipients.length)
+        .map(i => availableRecipients[i]);
+
+    const exceptChoices = await question('Select recipients for "except" list (comma-separated numbers): ');
+    const exceptIndices = exceptChoices.split(',').map(n => parseInt(n.trim(), 10) - 1);
+    const except = exceptIndices
+        .filter(i => !isNaN(i) && i >= 0 && i < availableRecipients.length)
+        .map(i => availableRecipients[i]);
 
     const relativeDir = await question('(Optional) Enter directory to save in (e.g., reports/2025/): ');
     const finalDir = path.join(entriesPath, relativeDir);
@@ -49,14 +70,11 @@ async function createDraft(entriesPath) {
     const filename = `${slugify(title)}.md`;
     const filePath = path.join(finalDir, filename);
 
-    const sourcePath = path.join(relativeDir, filename).replace(/\\/g, '/'); // Ensure forward slashes
+    const sourcePath = path.join(relativeDir, filename).replace(/\\/g, '/');
 
     const template = `---
-# To send to specific peers, list them: ['peer-alias-1', 'peer-alias-2']
-# To send to groups, list them: ['group:my-friends']
-to: []
-# To exclude peers or groups, list them.
-except: []
+to: ${JSON.stringify(to)}
+except: ${JSON.stringify(except)}
 sourcePath: "./${sourcePath}"
 destinationPath: "./${sourcePath}"
 ---
@@ -469,7 +487,7 @@ Hinter Helper
         const choice = await question('Choose an option: ');
 
         switch (choice.trim()) {
-            case '1': await createDraft(ENTRIES_PATH); break;
+            case '1': await createDraft(PEERS_PATH, ENTRIES_PATH); break;
             case '2': await postReports(PEERS_PATH, ENTRIES_PATH); break;
             case '3': await addPeer(PEERS_PATH); break;
             case '4': await managePeer(PEERS_PATH); break;
