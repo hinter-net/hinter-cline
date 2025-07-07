@@ -83,64 +83,16 @@ async function addPeer(peersPath) {
     console.log(`\nPeer '${alias}' added successfully.`);
 }
 
-async function editPeer(peersPath) {
-    console.log('\n--- Edit an Existing Peer ---');
+async function editOrRemovePeer(peersPath) {
+    console.log('\n--- Edit or Remove a Peer ---');
     const peers = await getPeerAliases(peersPath);
     if (peers.length === 0) {
-        console.log('No peers to edit.');
+        console.log('No peers to edit or remove.');
         return;
     }
 
     displayPeers(peers);
-    const choice = await question('Choose a peer to edit (number): ');
-    const peerIndex = parseInt(choice, 10) - 1;
-
-    if (isNaN(peerIndex) || peerIndex < 0 || peerIndex >= peers.length) {
-        console.log('Invalid selection.');
-        return;
-    }
-
-    const oldAlias = peers[peerIndex];
-    const editChoice = await question('What do you want to edit? (1. Alias, 2. Public Key): ');
-
-    if (editChoice === '1') {
-        const newAlias = await question(`Enter new alias for '${oldAlias}': `);
-        if (!isValidSlug(newAlias)) {
-            console.log('Invalid alias format.');
-            return;
-        }
-        if (peers.includes(newAlias)) {
-            console.log('Error: A peer with this alias already exists.');
-            return;
-        }
-        await fs.rename(path.join(peersPath, oldAlias), path.join(peersPath, newAlias));
-        console.log(`Peer alias updated from '${oldAlias}' to '${newAlias}'.`);
-    } else if (editChoice === '2') {
-        const newPublicKey = await question(`Enter new public key for '${oldAlias}': `);
-        if (!isValidPublicKey(newPublicKey)) {
-            console.log('Invalid public key format.');
-            return;
-        }
-        await fs.writeFile(
-            path.join(peersPath, oldAlias, 'hinter.config.json'),
-            JSON.stringify({ publicKey: newPublicKey }, null, 2)
-        );
-        console.log(`Public key for '${oldAlias}' updated.`);
-    } else {
-        console.log('Invalid choice.');
-    }
-}
-
-async function removePeer(peersPath) {
-    console.log('\n--- Remove a Peer ---');
-    const peers = await getPeerAliases(peersPath);
-    if (peers.length === 0) {
-        console.log('No peers to remove.');
-        return;
-    }
-
-    displayPeers(peers);
-    const choice = await question('Choose a peer to remove (number): ');
+    const choice = await question('Choose a peer to edit or remove (number): ');
     const peerIndex = parseInt(choice, 10) - 1;
 
     if (isNaN(peerIndex) || peerIndex < 0 || peerIndex >= peers.length) {
@@ -149,12 +101,41 @@ async function removePeer(peersPath) {
     }
 
     const alias = peers[peerIndex];
-    const confirm = await question(`Are you sure you want to remove peer '${alias}'? (y/[n]): `);
-    if (confirm.toLowerCase() === 'y') {
-        await fs.rm(path.join(peersPath, alias), { recursive: true, force: true });
-        console.log(`Peer '${alias}' removed successfully.`);
+    const editChoice = await question(`What do you want to do with '${alias}'? (1. Change Alias, 2. Change Public Key, 3. Delete Peer): `);
+
+    if (editChoice === '1') {
+        const newAlias = await question(`Enter new alias for '${alias}': `);
+        if (!isValidSlug(newAlias)) {
+            console.log('Invalid alias format.');
+            return;
+        }
+        if (peers.includes(newAlias)) {
+            console.log('Error: A peer with this alias already exists.');
+            return;
+        }
+        await fs.rename(path.join(peersPath, alias), path.join(peersPath, newAlias));
+        console.log(`Peer alias updated from '${alias}' to '${newAlias}'.`);
+    } else if (editChoice === '2') {
+        const newPublicKey = await question(`Enter new public key for '${alias}': `);
+        if (!isValidPublicKey(newPublicKey)) {
+            console.log('Invalid public key format.');
+            return;
+        }
+        await fs.writeFile(
+            path.join(peersPath, alias, 'hinter.config.json'),
+            JSON.stringify({ publicKey: newPublicKey }, null, 2)
+        );
+        console.log(`Public key for '${alias}' updated.`);
+    } else if (editChoice === '3') {
+        const confirm = await question(`Are you sure you want to delete peer '${alias}'? (y/[n]): `);
+        if (confirm.toLowerCase() === 'y') {
+            await fs.rm(path.join(peersPath, alias), { recursive: true, force: true });
+            console.log(`Peer '${alias}' deleted successfully.`);
+        } else {
+            console.log('Deletion cancelled.');
+        }
     } else {
-        console.log('Removal cancelled.');
+        console.log('Invalid choice.');
     }
 }
 
@@ -308,21 +289,19 @@ async function main() {
 Hinter Helper
 ------------------------------
 1. Add a new peer
-2. Edit an existing peer
-3. Remove a peer
-4. Create a new report draft
-5. Post all reports
-6. Exit
+2. Edit or remove a peer
+3. Create a new report draft
+4. Post all reports
+5. Exit
 ------------------------------`);
         const choice = await question('Choose an option: ');
 
         switch (choice.trim()) {
             case '1': await addPeer(PEERS_PATH); break;
-            case '2': await editPeer(PEERS_PATH); break;
-            case '3': await removePeer(PEERS_PATH); break;
-            case '4': await createDraft(ENTRIES_PATH); break;
-            case '5': await postReports(PEERS_PATH, ENTRIES_PATH); break;
-            case '6': console.log('Exiting.'); rl.close(); return;
+            case '2': await editOrRemovePeer(PEERS_PATH); break;
+            case '3': await createDraft(ENTRIES_PATH); break;
+            case '4': await postReports(PEERS_PATH, ENTRIES_PATH); break;
+            case '5': console.log('Exiting.'); rl.close(); return;
             default: console.log('Invalid option.');
         }
         await question('\nPress Enter to continue...');
