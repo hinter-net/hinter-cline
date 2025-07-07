@@ -9,7 +9,7 @@
   },
   "scripts": {
     "docker:build": "docker build -t bbenligiray/hinter-cline:latest .",
-    "docker:start": "docker run -it --rm -p8081:8080 -v./hinter-core-data:/app/hinter-core-data bbenligiray/hinter-cline:latest"
+    "docker:start": "docker run -it --rm -p8080:8080 -v./hinter-core-data:/app/hinter-core-data bbenligiray/hinter-cline:latest"
   },
   "dependencies": {}
 }

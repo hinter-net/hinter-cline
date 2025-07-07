@@ -19,7 +19,8 @@ This project is designed to work across all operating systems and be accessible 
 5. Click the Cline icon on the VS Code sidebar.
     Select an API provider and enter your API key.
 
-    If you are not a paid subscriber to any of these API providers:
+    If you are not a paid subscriber to any of these API providers, consider using one that offers a free trial for testing.
+    For example:
     - Create an [OpenRouter](https://openrouter.ai/) account
     - Create an API key
     - Configure Cline to use [`deepseek/deepseek-chat-v3-0324:free`](https://openrouter.ai/deepseek/deepseek-chat-v3-0324:free)
@@ -38,4 +39,4 @@ Switching between Plan and Act Mode retains the context, so you will likely want
 
 Whenever you want Cline to start as a clean slate, start a new task (for example, by clicking the plus sign on the Cline extension).
 Doing this between independent hinter workflows will cause Cline to perform in a more consistent manner.
-However, you may want to continue using the same task during multiple dependent workflows, such as revising the same report multiple times.
+However, you may want to continue using the same task for dependent workflows, such as revising the same report multiple times.

@@ -50,7 +50,7 @@ Thumbs.db
 *.temp
 *~
 
-# Environment files
+# hinter-core keypair
 .env
 EOF
         echo ".gitignore file created"
