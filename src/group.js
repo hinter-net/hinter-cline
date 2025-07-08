@@ -100,8 +100,11 @@ async function manageGroup(dataPath) {
     }
 
     // Add peers
+    // Note: The list of non-members is calculated based on the group's state
+    // at the beginning of this function call. Peers removed in the step above
+    // will not be available to be re-added in the same session.
     const allPeers = await getPeerAliases(dataPath);
-    const currentMembers = groups.get(groupName) || [];
+    const currentMembers = allGroups.get(groupName) || [];
     const nonMembers = allPeers.filter(p => !currentMembers.includes(p));
     if (nonMembers.length > 0) {
         console.log('\nPeers not in this group:');
