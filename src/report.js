@@ -40,25 +40,17 @@ async function createDraft(dataPath) {
         return;
     }
 
-    const relativeDir = await question('(Optional) Enter directory to save in (e.g., reports/2025/): ');
-    const finalDir = path.join(entriesPath, relativeDir);
-    await fs.mkdir(finalDir, { recursive: true });
-
-    const filename = `${slugify(title)}.md`;
-    const filePath = path.join(finalDir, filename);
-
-    const sourcePath = path.join(relativeDir, filename).replace(/\\/g, '/');
-
     const template = `---
 to: ${JSON.stringify(to)}
 except: ${JSON.stringify(except)}
-sourcePath: "./${sourcePath}"
-destinationPath: "./${sourcePath}"
+sourcePath: ""
+destinationPath: ""
 ---
 
 # ${title}
 
 `;
+    const filePath = path.join(entriesPath, `${slugify(title)}.md`);
     await fs.writeFile(filePath, template);
     console.log(`Draft created at: ${filePath}`);
 }
@@ -168,7 +160,7 @@ async function postReports(dataPath) {
             })();
 
             for (const peerAlias of recipients) {
-                const destPath = path.join(getPeerPath(dataPath, peer), 'outgoing', destinationPath);
+                const destPath = path.join(getPeerPath(dataPath, peerAlias), 'outgoing', destinationPath);
                 await fs.mkdir(path.dirname(destPath), { recursive: true });
                 await fs.writeFile(destPath, finalContent);
                 console.log(`Posted '${path.basename(sourcePath)}' to '${peerAlias}' at '${destinationPath}'`);
