@@ -19,42 +19,42 @@ async function getGroups(dataPath) {
 
 async function addGroup(dataPath) {
     console.log('\n--- Add a Group ---');
-    const groupName = await question('Enter new group name: ');
-    if (!isValidSlug(groupName)) {
-        console.log('Invalid group name format.');
+    const newGroupAlias = await question('Enter new group alias (e.g., ai-developers): ');
+    if (!isValidSlug(newGroupAlias)) {
+        console.log('Invalid alias format. Use lowercase letters, numbers, and single hyphens.');
         return;
     }
 
     const groups = await getGroups(dataPath);
-    if (groups.has(groupName)) {
-        console.log('Error: A group with this name already exists.');
+    if (groups.has(newGroupAlias)) {
+        console.log('Error: A group with this alias already exists.');
         return;
     }
 
-    const peers = await getPeerAliases(dataPath);
-    if (peers.length === 0) {
+    const peerAliases = await getPeerAliases(dataPath);
+    if (peerAliases.length === 0) {
         console.log('No peers exist to add to a group.');
         return;
     }
 
     console.log('Available peers:');
-    displayPeers(peers);
+    displayPeers(peerAliases);
     const choices = await question('Select peers to add (comma-separated numbers, e.g., 1,3,4): ');
     const peerIndices = choices.split(',').map(n => parseInt(n.trim(), 10) - 1);
 
     for (const index of peerIndices) {
-        if (!isNaN(index) && index >= 0 && index < peers.length) {
-            const peerAlias = peers[index];
+        if (!isNaN(index) && index >= 0 && index < peerAliases.length) {
+            const peerAlias = peerAliases[index];
             const config = await getPeerConfig(dataPath, peerAlias);
-            
+
             config['hinter-cline'] = config['hinter-cline'] || {};
             config['hinter-cline'].groups = config['hinter-cline'].groups || [];
-            if (!config['hinter-cline'].groups.includes(groupName)) {
-                config['hinter-cline'].groups.push(groupName);
+            if (!config['hinter-cline'].groups.includes(newGroupAlias)) {
+                config['hinter-cline'].groups.push(newGroupAlias);
             }
-            
+
             await updatePeerConfig(dataPath, peerAlias, config);
-            console.log(`Added '${peerAlias}' to group '${groupName}'.`);
+            console.log(`Added '${peerAlias}' to group '${newGroupAlias}'.`);
         }
     }
 }
@@ -69,8 +69,8 @@ async function manageGroup(dataPath) {
 
     const groupNames = Array.from(groups.keys());
     console.log('Available groups:');
-    groupNames.forEach((name, i) => console.log(`[${i+1}] ${name}`));
-    
+    groupNames.forEach((name, i) => console.log(`[${i + 1}] ${name}`));
+
     const choice = await question('Choose a group to manage (number): ');
     const groupIndex = parseInt(choice.trim(), 10) - 1;
 

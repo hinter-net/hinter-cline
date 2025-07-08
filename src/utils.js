@@ -28,10 +28,10 @@ function slugify(text) {
         .replace(/-+$/, '');
 }
 
-function displayPeers(peers) {
+function displayPeers(peerAliases) {
     let output = '';
-    peers.forEach((peer, index) => {
-        output += `[${index + 1}]`.padEnd(5) + `${peer.padEnd(20)}`;
+    peerAliases.forEach((peerAlias, index) => {
+        output += `[${index + 1}]`.padEnd(5) + `${peerAlias.padEnd(20)}`;
         if ((index + 1) % 4 === 0) {
             output += '\n';
         }
