@@ -8,9 +8,9 @@ async function getPeerConfig(peerPath) {
     return JSON.parse(configContent);
 }
 
-async function updatePeerConfig(peerPath, newConfig) {
+async function updatePeerConfig(peerPath, newConfigContent) {
     const configPath = path.join(peerPath, 'hinter.config.json');
-    await fs.writeFile(configPath, JSON.stringify(newConfig, null, 2));
+    await fs.writeFile(configPath, JSON.stringify(newConfigContent, null, 2));
 }
 
 async function getPeerAliases(peersPath) {
