@@ -67,34 +67,34 @@ async function manageGroup(dataPath) {
         return;
     }
 
-    const groupNames = Array.from(groups.keys());
+    const groupAliases = Array.from(groups.keys());
     console.log('Available groups:');
-    groupNames.forEach((name, i) => console.log(`[${i + 1}] ${name}`));
+    groupAliases.forEach((groupAlias, i) => console.log(`[${i + 1}] ${groupAlias}`));
 
     const choice = await question('Choose a group to manage (number): ');
     const groupIndex = parseInt(choice.trim(), 10) - 1;
 
-    if (isNaN(groupIndex) || groupIndex < 0 || groupIndex >= groupNames.length) {
+    if (isNaN(groupIndex) || groupIndex < 0 || groupIndex >= groupAliases.length) {
         console.log('Invalid selection.');
         return;
     }
 
-    const groupName = groupNames[groupIndex];
-    const members = groups.get(groupName);
-    console.log(`\nMembers of '${groupName}':`);
-    displayPeers(members);
+    const managedGroupAlias = groupAliases[groupIndex];
+    const managedGroupPeerAliases = groups.get(managedGroupAlias);
+    console.log(`\nPeers in '${managedGroupAlias}':`);
+    displayPeers(managedGroupPeerAliases);
 
     // Remove peers
-    const removeChoices = await question('Select members to REMOVE (comma-separated numbers, press Enter to skip): ');
+    const removeChoices = await question('Select peers to remove from group (comma-separated numbers, press Enter to skip): ');
     if (removeChoices) {
         const indicesToRemove = removeChoices.split(',').map(n => parseInt(n.trim(), 10) - 1);
         for (const index of indicesToRemove) {
-            if (!isNaN(index) && index >= 0 && index < members.length) {
-                const peerAlias = members[index];
+            if (!isNaN(index) && index >= 0 && index < managedGroupPeerAliases.length) {
+                const peerAlias = managedGroupPeerAliases[index];
                 const config = await getPeerConfig(dataPath, peerAlias);
-                config['hinter-cline'].groups = config['hinter-cline'].groups.filter(g => g !== groupName);
+                config['hinter-cline'].groups = config['hinter-cline'].groups.filter(g => g !== managedGroupAlias);
                 await updatePeerConfig(dataPath, peerAlias, config);
-                console.log(`Removed '${peerAlias}' from group '${groupName}'.`);
+                console.log(`Removed '${peerAlias}' from group '${managedGroupAlias}'.`);
             }
         }
     }
@@ -103,26 +103,25 @@ async function manageGroup(dataPath) {
     // Note: The list of non-members is calculated based on the group's state
     // at the beginning of this function call. Peers removed in the step above
     // will not be available to be re-added in the same session.
-    const allPeers = await getPeerAliases(dataPath);
-    const currentMembers = allGroups.get(groupName) || [];
-    const nonMembers = allPeers.filter(p => !currentMembers.includes(p));
-    if (nonMembers.length > 0) {
+    const peerAliases = await getPeerAliases(dataPath);
+    const managedGroupNonmemberPeerAliases = peerAliases.filter(p => !managedGroupPeerAliases.includes(p));
+    if (managedGroupNonmemberPeerAliases.length > 0) {
         console.log('\nPeers not in this group:');
-        displayPeers(nonMembers);
-        const addChoices = await question('Select peers to ADD (comma-separated numbers, press Enter to skip): ');
+        displayPeers(managedGroupNonmemberPeerAliases);
+        const addChoices = await question('Select peers to add to group (comma-separated numbers, press Enter to skip): ');
         if (addChoices) {
             const indicesToAdd = addChoices.split(',').map(n => parseInt(n.trim(), 10) - 1);
             for (const index of indicesToAdd) {
-                if (!isNaN(index) && index >= 0 && index < nonMembers.length) {
-                    const peerAlias = nonMembers[index];
+                if (!isNaN(index) && index >= 0 && index < managedGroupNonmemberPeerAliases.length) {
+                    const peerAlias = managedGroupNonmemberPeerAliases[index];
                     const config = await getPeerConfig(dataPath, peerAlias);
                     config['hinter-cline'] = config['hinter-cline'] || {};
                     config['hinter-cline'].groups = config['hinter-cline'].groups || [];
-                    if (!config['hinter-cline'].groups.includes(groupName)) {
-                        config['hinter-cline'].groups.push(groupName);
+                    if (!config['hinter-cline'].groups.includes(managedGroupAlias)) {
+                        config['hinter-cline'].groups.push(managedGroupAlias);
                     }
                     await updatePeerConfig(dataPath, peerAlias, config);
-                    console.log(`Added '${peerAlias}' to group '${groupName}'.`);
+                    console.log(`Added '${peerAlias}' to group '${managedGroupAlias}'.`);
                 }
             }
         }
