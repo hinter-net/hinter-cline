@@ -7,7 +7,7 @@ const { getGroups } = require('./group');
 
 async function createDraft(dataPath) {
     const entriesPath = path.join(dataPath, 'entries');
-    console.log('\n--- Create a Report Draft ---');
+    console.log('\n--- Create a report draft ---');
     const title = await question('Enter report title: ');
     if (!title) {
         console.log('Title cannot be empty.');
@@ -19,9 +19,21 @@ async function createDraft(dataPath) {
     const allGroupNames = Array.from(groups.keys());
 
     const availableRecipients = [...allGroupNames.map(g => `group:${g}`), ...allPeers];
-    
-    const to = await selectFromList(availableRecipients, 'Select recipients for "to" list');
-    const except = await selectFromList(availableRecipients, 'Select recipients for "except" list');
+
+    let to;
+    try {
+        to = await selectFromList(availableRecipients, 'Select recipients for "to" list.');
+    } catch (e) {
+        console.log(e.message);
+        return;
+    }
+    let except;
+    try {
+        except = await selectFromList(availableRecipients, 'Select recipients for "except" list.');
+    } catch (e) {
+        console.log(e.message);
+        return;
+    }
 
     const relativeDir = await question('(Optional) Enter directory to save in (e.g., reports/2025/): ');
     const finalDir = path.join(entriesPath, relativeDir);
@@ -72,7 +84,7 @@ function extractFrontmatterAndContent(text) {
 async function postReports(dataPath) {
     const peersPath = path.join(dataPath, 'peers');
     const entriesPath = path.join(dataPath, 'entries');
-    console.log('\n--- Post Reports ---');
+    console.log('\n--- Post reports ---');
     const allPeerAliases = await getPeerAliases(dataPath);
     if (allPeerAliases.length === 0) {
         console.log('No peers configured.');
@@ -99,7 +111,7 @@ async function postReports(dataPath) {
                 !Array.isArray(frontmatter.to) ||
                 !Array.isArray(frontmatter.except)
             ) {
-                console.error(`Error: Report draft ${filePath} is missing required fields (sourcePath, destinationPath, to, except).`);
+                console.error(`Report draft ${filePath} is missing required fields (sourcePath, destinationPath, to, except).`);
                 continue;
             }
 

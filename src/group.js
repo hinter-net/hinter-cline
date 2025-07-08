@@ -18,7 +18,7 @@ async function getGroups(dataPath) {
 }
 
 async function addGroup(dataPath) {
-    console.log('\n--- Add a Group ---');
+    console.log('\n--- Add a group ---');
     const newGroupAlias = await question('Enter new group alias (e.g., ai-developers): ');
     if (!isValidSlug(newGroupAlias)) {
         console.log('Invalid alias format. Use lowercase letters, numbers, and single hyphens.');
@@ -27,7 +27,7 @@ async function addGroup(dataPath) {
 
     const groups = await getGroups(dataPath);
     if (groups.has(newGroupAlias)) {
-        console.log('Error: A group with this alias already exists.');
+        console.log('A group with this alias already exists.');
         return;
     }
 
@@ -37,12 +37,18 @@ async function addGroup(dataPath) {
         return;
     }
 
-    const selectedItems = await selectFromList(peerAliases, 'Select peers to add');
-    if (selectedItems.length === 0) {
+    let selectedPeerAliases;
+    try {
+        selectedPeerAliases = await selectFromList(peerAliases, 'Select peers to add.');
+    } catch (e) {
+        console.log(e.message);
+        return;
+    }
+    if (selectedPeerAliases.length === 0) {
         console.log('No peer selected. Group not added.');
         return;
     }
-    for (const peerAlias of selectedItems) {
+    for (const peerAlias of selectedPeerAliases) {
         const config = await getPeerConfig(dataPath, peerAlias);
 
         config['hinter-cline'] = config['hinter-cline'] || {};
@@ -57,7 +63,7 @@ async function addGroup(dataPath) {
 }
 
 async function manageGroup(dataPath) {
-    console.log('\n--- Manage a Group ---');
+    console.log('\n--- Manage a group ---');
     const groups = await getGroups(dataPath);
     if (groups.size === 0) {
         console.log('No groups to manage.');
@@ -65,19 +71,29 @@ async function manageGroup(dataPath) {
     }
 
     const groupAliases = Array.from(groups.keys());
-    const selectedItems = await selectFromList(groupAliases, 'Select a group to manage', { allowMultiple: false });
-    if (selectedItems.length === 0) {
+    let selectedGroupAliases;
+    try {
+        selectedGroupAliases = await selectFromList(groupAliases, 'Select a group to manage.', { allowMultiple: false });
+    } catch (e) {
+        console.log(e.message);
+        return;
+    }
+    if (selectedGroupAliases.length === 0) {
         console.log('No group selected.');
         return;
     }
-    const managedGroupAlias = selectedItems[0];
+    const managedGroupAlias = selectedGroupAliases[0];
     const managedGroupPeerAliases = groups.get(managedGroupAlias);
-    console.log(`\nPeers in '${managedGroupAlias}':`);
-    displayList(managedGroupPeerAliases);
 
     // Remove peers
-    const peersToRemove = await selectFromList(managedGroupPeerAliases, 'Select peers to remove from group');
-    for (const peerAlias of peersToRemove) {
+    let selectedPeersToRemove;
+    try {
+        selectedPeersToRemove = await selectFromList(managedGroupPeerAliases, 'Select peers to remove from group.');
+    } catch (e) {
+        console.log(e.message);
+        return;
+    }
+    for (const peerAlias of selectedPeersToRemove) {
         const config = await getPeerConfig(dataPath, peerAlias);
         config['hinter-cline'].groups = config['hinter-cline'].groups.filter(g => g !== managedGroupAlias);
         await updatePeerConfig(dataPath, peerAlias, config);
@@ -91,9 +107,14 @@ async function manageGroup(dataPath) {
     const peerAliases = await getPeerAliases(dataPath);
     const managedGroupNonmemberPeerAliases = peerAliases.filter(p => !managedGroupPeerAliases.includes(p));
     if (managedGroupNonmemberPeerAliases.length > 0) {
-        console.log('\nPeers not in this group:');
-        const peersToAdd = await selectFromList(managedGroupNonmemberPeerAliases, 'Select peers to add to group');
-        for (const peerAlias of peersToAdd) {
+        let selectedPeersToAdd;
+        try {
+            selectedPeersToAdd = await selectFromList(managedGroupNonmemberPeerAliases, 'Select peers to add to group.');
+        } catch (e) {
+            console.log(e.message);
+            return;
+        }
+        for (const peerAlias of selectedPeersToAdd) {
             const config = await getPeerConfig(dataPath, peerAlias);
             config['hinter-cline'] = config['hinter-cline'] || {};
             config['hinter-cline'].groups = config['hinter-cline'].groups || [];

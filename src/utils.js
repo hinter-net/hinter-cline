@@ -44,27 +44,35 @@ async function selectFromList(items, promptMessage, { allowMultiple = true } = {
         return [];
     }
     displayList(items);
-    
-    const prompt = allowMultiple 
+
+    const prompt = allowMultiple
         ? `${promptMessage}\nEnter comma-separated numbers (e.g. 3,5,6): `
-        : `${promptMessage}\nEnter a number:`;
+        : `${promptMessage}\nEnter a number: `;
 
     const choices = await question(prompt);
     if (!choices) {
         return [];
     }
 
-    let indices;
-    if (allowMultiple) {
-        indices = choices.split(',').map(n => parseInt(n.trim(), 10) - 1);
-    } else {
-        const index = parseInt(choices.trim(), 10) - 1;
-        indices = [index];
+    const choiceStrings = allowMultiple ? choices.split(',') : [choices];
+    const selectedItems = [];
+
+    for (const str of choiceStrings) {
+        const trimmed = str.trim();
+        if (trimmed === '') continue;
+
+        const index = parseInt(trimmed, 10) - 1;
+        if (isNaN(index) || index < 0 || index >= items.length) {
+            throw new Error(`Invalid selection: '${trimmed}'. Please enter numbers from the list.`);
+        }
+        selectedItems.push(items[index]);
     }
 
-    return indices
-        .filter(i => !isNaN(i) && i >= 0 && i < items.length)
-        .map(i => items[i]);
+    if (!allowMultiple && selectedItems.length > 1) {
+        throw new Error('Multiple selections are not allowed for this prompt.');
+    }
+
+    return selectedItems;
 }
 
 module.exports = {

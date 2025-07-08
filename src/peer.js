@@ -29,7 +29,7 @@ async function getPeerAliases(dataPath) {
 }
 
 async function addPeer(dataPath) {
-    console.log('\n--- Add a Peer ---');
+    console.log('\n--- Add a peer ---');
     const newPeerAlias = await question('Enter peer alias (e.g., alice-work): ');
     if (!isValidSlug(newPeerAlias)) {
         console.log('Invalid alias format. Use lowercase letters, numbers, and single hyphens.');
@@ -38,7 +38,7 @@ async function addPeer(dataPath) {
 
     const existingPeerAliases = await getPeerAliases(dataPath);
     if (existingPeerAliases.includes(newPeerAlias)) {
-        console.log('Error: A peer with this alias already exists.');
+        console.log('A peer with this alias already exists.');
         return;
     }
 
@@ -51,7 +51,7 @@ async function addPeer(dataPath) {
     for (const peerAlias of existingPeerAliases) {
         const config = await getPeerConfig(dataPath, peerAlias);
         if (config.publicKey === publicKey) {
-            console.log(`Error: This public key is already used by peer '${peerAlias}'.`);
+            console.log(`This public key is already used by peer '${peerAlias}'.`);
             return;
         }
     }
@@ -62,20 +62,26 @@ async function addPeer(dataPath) {
 }
 
 async function managePeer(dataPath) {
-    console.log('\n--- Manage a Peer ---');
+    console.log('\n--- Manage a peer ---');
     const peerAliases = await getPeerAliases(dataPath);
     if (peerAliases.length === 0) {
         console.log('No peers to manage.');
         return;
     }
 
-    const selectedItems = await selectFromList(peerAliases, 'Choose a peer to manage', { allowMultiple: false });
-    if (selectedItems.length === 0) {
+    let selectedPeerAliases;
+    try {
+        selectedPeerAliases = await selectFromList(peerAliases, 'Choose a peer to manage.', { allowMultiple: false });
+    } catch (e) {
+        console.log(e.message);
+        return;
+    }
+    if (selectedPeerAliases.length === 0) {
         console.log('No peer selected.');
         return;
     }
-    const managedPeerAlias = selectedItems[0];
-    const editChoice = await question(`What do you want to do with '${managedPeerAlias}'? (1. Change Alias, 2. Change Public Key, 3. Delete Peer): `);
+    const managedPeerAlias = selectedPeerAliases[0];
+    const editChoice = await question(`What do you want to do with '${managedPeerAlias}'? (1. Change alias, 2. Change public key, 3. Delete peer): `);
 
     if (editChoice === '1') {
         const newAlias = await question(`Enter new alias for '${managedPeerAlias}': `);
@@ -84,7 +90,7 @@ async function managePeer(dataPath) {
             return;
         }
         if (peerAliases.includes(newAlias)) {
-            console.log('Error: A peer with this alias already exists.');
+            console.log('A peer with this alias already exists.');
             return;
         }
         await fs.rename(getPeerPath(dataPath, managedPeerAlias), getPeerPath(dataPath, newAlias));
@@ -100,7 +106,7 @@ async function managePeer(dataPath) {
             if (peerAlias === managedPeerAlias) continue; // Don't check against the peer being edited
             const config = await getPeerConfig(dataPath, peerAlias);
             if (config.publicKey === newPublicKey) {
-                console.log(`Error: This public key is already used by peer '${peerAlias}'.`);
+                console.log(`This public key is already used by peer '${peerAlias}'.`);
                 return;
             }
         }
