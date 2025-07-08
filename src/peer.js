@@ -16,8 +16,8 @@ async function getPeerConfig(dataPath, alias) {
     return JSON.parse(configContent);
 }
 
-async function updatePeerConfig(peerPath, newConfigContent) {
-    const configPath = path.join(peerPath, 'hinter.config.json');
+async function updatePeerConfig(dataPath, alias, newConfigContent) {
+    const configPath = path.join(getPeersPath(dataPath), alias, 'hinter.config.json');
     await fs.writeFile(configPath, JSON.stringify(newConfigContent, null, 2));
 }
 
@@ -115,7 +115,7 @@ async function managePeer(dataPath) {
 
         const config = await getPeerConfig(dataPath, alias);
         config.publicKey = newPublicKey;
-        await updatePeerConfig(path.join(peersPath, alias), config);
+        await updatePeerConfig(dataPath, alias, config);
         console.log(`Public key for '${alias}' updated.`);
     } else if (editChoice === '3') {
         const confirm = await question(`Are you sure you want to delete peer '${alias}'? (y/[n]): `);

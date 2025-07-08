@@ -49,7 +49,6 @@ async function addGroup(dataPath) {
     for (const index of peerIndices) {
         if (!isNaN(index) && index >= 0 && index < peers.length) {
             const peerAlias = peers[index];
-            const peerPath = path.join(peersPath, peerAlias);
             const config = await getPeerConfig(dataPath, peerAlias);
             
             config['hinter-cline'] = config['hinter-cline'] || {};
@@ -58,7 +57,7 @@ async function addGroup(dataPath) {
                 config['hinter-cline'].groups.push(groupName);
             }
             
-            await updatePeerConfig(peerPath, config);
+            await updatePeerConfig(dataPath, peerAlias, config);
             console.log(`Added '${peerAlias}' to group '${groupName}'.`);
         }
     }
@@ -97,10 +96,9 @@ async function manageGroup(dataPath) {
         for (const index of indicesToRemove) {
             if (!isNaN(index) && index >= 0 && index < members.length) {
                 const peerAlias = members[index];
-                const peerPath = path.join(peersPath, peerAlias);
                 const config = await getPeerConfig(dataPath, peerAlias);
                 config['hinter-cline'].groups = config['hinter-cline'].groups.filter(g => g !== groupName);
-                await updatePeerConfig(peerPath, config);
+                await updatePeerConfig(dataPath, peerAlias, config);
                 console.log(`Removed '${peerAlias}' from group '${groupName}'.`);
             }
         }
@@ -119,14 +117,13 @@ async function manageGroup(dataPath) {
             for (const index of indicesToAdd) {
                 if (!isNaN(index) && index >= 0 && index < nonMembers.length) {
                     const peerAlias = nonMembers[index];
-                    const peerPath = path.join(peersPath, peerAlias);
                     const config = await getPeerConfig(dataPath, peerAlias);
                     config['hinter-cline'] = config['hinter-cline'] || {};
                     config['hinter-cline'].groups = config['hinter-cline'].groups || [];
                     if (!config['hinter-cline'].groups.includes(groupName)) {
                         config['hinter-cline'].groups.push(groupName);
                     }
-                    await updatePeerConfig(peerPath, config);
+                    await updatePeerConfig(dataPath, peerAlias, config);
                     console.log(`Added '${peerAlias}' to group '${groupName}'.`);
                 }
             }
