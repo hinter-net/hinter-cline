@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const yaml = require('js-yaml');
-const { question, slugify, displayList } = require('./utils');
+const { question, slugify, selectFromList } = require('./utils');
 const { getPeerAliases } = require('./peer');
 const { getGroups } = require('./group');
 
@@ -19,21 +19,9 @@ async function createDraft(dataPath) {
     const allGroupNames = Array.from(groups.keys());
 
     const availableRecipients = [...allGroupNames.map(g => `group:${g}`), ...allPeers];
-
-    console.log('Available recipients:');
-    displayList(availableRecipients);
-
-    const toChoices = await question('Select recipients for "to" list (comma-separated numbers): ');
-    const toIndices = toChoices.split(',').map(n => parseInt(n.trim(), 10) - 1);
-    const to = toIndices
-        .filter(i => !isNaN(i) && i >= 0 && i < availableRecipients.length)
-        .map(i => availableRecipients[i]);
-
-    const exceptChoices = await question('Select recipients for "except" list (comma-separated numbers): ');
-    const exceptIndices = exceptChoices.split(',').map(n => parseInt(n.trim(), 10) - 1);
-    const except = exceptIndices
-        .filter(i => !isNaN(i) && i >= 0 && i < availableRecipients.length)
-        .map(i => availableRecipients[i]);
+    
+    const to = await selectFromList(availableRecipients, 'Select recipients for "to" list');
+    const except = await selectFromList(availableRecipients, 'Select recipients for "except" list');
 
     const relativeDir = await question('(Optional) Enter directory to save in (e.g., reports/2025/): ');
     const finalDir = path.join(entriesPath, relativeDir);

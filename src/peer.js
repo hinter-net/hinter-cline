@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
-const { question, isValidSlug, isValidPublicKey, displayList } = require('./utils');
+const { question, isValidSlug, isValidPublicKey, selectFromList } = require('./utils');
 
 function getPeersPath(dataPath) {
     return path.join(dataPath, 'peers');
@@ -69,16 +69,12 @@ async function managePeer(dataPath) {
         return;
     }
 
-    displayList(peerAliases);
-    const choice = await question('Choose a peer to manage (number): ');
-    const peerIndex = parseInt(choice, 10) - 1;
-
-    if (isNaN(peerIndex) || peerIndex < 0 || peerIndex >= peerAliases.length) {
-        console.log('Invalid selection.');
+    const selectedItems = await selectFromList(peerAliases, 'Choose a peer to manage', { allowMultiple: false });
+    if (selectedItems.length === 0) {
+        console.log('No peer selected.');
         return;
     }
-
-    const managedPeerAlias = peerAliases[peerIndex];
+    const managedPeerAlias = selectedItems[0];
     const editChoice = await question(`What do you want to do with '${managedPeerAlias}'? (1. Change Alias, 2. Change Public Key, 3. Delete Peer): `);
 
     if (editChoice === '1') {
