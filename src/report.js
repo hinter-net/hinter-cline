@@ -134,7 +134,10 @@ async function postReports(dataPath) {
                 to.forEach(item => {
                     if (item.startsWith('group:')) {
                         const groupName = item.substring(6);
-                        (groups.get(groupName) || []).forEach(p => expandedTo.add(p));
+                        if (!groups.has(groupName)) {
+                            throw new Error(`Invalid group name '${groupName}' found in report draft.`);
+                        }
+                        groups.get(groupName).forEach(p => expandedTo.add(p));
                     } else {
                         expandedTo.add(item);
                     }
@@ -144,7 +147,10 @@ async function postReports(dataPath) {
                 except.forEach(item => {
                     if (item.startsWith('group:')) {
                         const groupName = item.substring(6);
-                        (groups.get(groupName) || []).forEach(p => expandedExcept.add(p));
+                        if (!groups.has(groupName)) {
+                            throw new Error(`Invalid group name '${groupName}' found in report draft.`);
+                        }
+                        groups.get(groupName).forEach(p => expandedExcept.add(p));
                     } else {
                         expandedExcept.add(item);
                     }
