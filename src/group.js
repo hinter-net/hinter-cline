@@ -4,9 +4,8 @@ const { question, isValidSlug, displayPeers } = require('./utils');
 const { getPeerAliases, getPeerConfig, updatePeerConfig } = require('./peer');
 
 async function getAllGroups(dataPath) {
-    const peersPath = path.join(dataPath, 'peers');
     const groups = new Map();
-    const peerAliases = await getPeerAliases(peersPath);
+    const peerAliases = await getPeerAliases(dataPath);
     for (const peerAlias of peerAliases) {
         const config = await getPeerConfig(dataPath, peerAlias);
         const peerGroups = config['hinter-cline']?.groups || [];
@@ -21,7 +20,6 @@ async function getAllGroups(dataPath) {
 }
 
 async function addGroup(dataPath) {
-    const peersPath = path.join(dataPath, 'peers');
     console.log('\n--- Add a Group ---');
     const groupName = await question('Enter new group name: ');
     if (!isValidSlug(groupName)) {
@@ -35,7 +33,7 @@ async function addGroup(dataPath) {
         return;
     }
 
-    const peers = await getPeerAliases(peersPath);
+    const peers = await getPeerAliases(dataPath);
     if (peers.length === 0) {
         console.log('No peers exist to add to a group.');
         return;
@@ -64,7 +62,6 @@ async function addGroup(dataPath) {
 }
 
 async function manageGroup(dataPath) {
-    const peersPath = path.join(dataPath, 'peers');
     console.log('\n--- Manage a Group ---');
     const allGroups = await getAllGroups(dataPath);
     if (allGroups.size === 0) {
@@ -105,7 +102,7 @@ async function manageGroup(dataPath) {
     }
 
     // Add peers
-    const allPeers = await getPeerAliases(peersPath);
+    const allPeers = await getPeerAliases(dataPath);
     const currentMembers = allGroups.get(groupName) || [];
     const nonMembers = allPeers.filter(p => !currentMembers.includes(p));
     if (nonMembers.length > 0) {

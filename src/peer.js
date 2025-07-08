@@ -21,15 +21,14 @@ async function updatePeerConfig(dataPath, alias, newConfigContent) {
     await fs.writeFile(configPath, JSON.stringify(newConfigContent, null, 2));
 }
 
-async function getPeerAliases(peersPath) {
-    const peersDirectoryContents = await fs.readdir(peersPath, { withFileTypes: true });
+async function getPeerAliases(dataPath) {
+    const peersDirectoryContents = await fs.readdir(getPeersPath(dataPath), { withFileTypes: true });
     return peersDirectoryContents
         .filter(peersDirectoryContent => peersDirectoryContent.isDirectory())
         .map(peerDirectory => peerDirectory.name);
 }
 
 async function addPeer(dataPath) {
-    const peersPath = path.join(dataPath, 'peers');
     console.log('\n--- Add a Peer ---');
     const alias = await question('Enter peer alias (e.g., alice-work): ');
     if (!isValidSlug(alias)) {
@@ -37,7 +36,7 @@ async function addPeer(dataPath) {
         return;
     }
 
-    const existingPeerAliases = await getPeerAliases(peersPath);
+    const existingPeerAliases = await getPeerAliases(dataPath);
     if (existingPeerAliases.includes(alias)) {
         console.log('Error: A peer with this alias already exists.');
         return;
@@ -57,16 +56,15 @@ async function addPeer(dataPath) {
         }
     }
 
-    const peerPath = path.join(peersPath, alias);
+    const peerPath = getPeerPath(dataPath, alias);
     await fs.mkdir(peerPath);
     await fs.writeFile(path.join(peerPath, 'hinter.config.json'), JSON.stringify({ publicKey }, null, 2));
     console.log(`\nPeer '${alias}' added successfully.`);
 }
 
 async function managePeer(dataPath) {
-    const peersPath = path.join(dataPath, 'peers');
     console.log('\n--- Manage a Peer ---');
-    const peers = await getPeerAliases(peersPath);
+    const peers = await getPeerAliases(dataPath);
     if (peers.length === 0) {
         console.log('No peers to manage.');
         return;
@@ -94,7 +92,7 @@ async function managePeer(dataPath) {
             console.log('Error: A peer with this alias already exists.');
             return;
         }
-        await fs.rename(path.join(peersPath, alias), path.join(peersPath, newAlias));
+        await fs.rename(getPeerPath(dataPath, alias), getPeerPath(dataPath, newAlias));
         console.log(`Peer alias updated from '${alias}' to '${newAlias}'.`);
     } else if (editChoice === '2') {
         const newPublicKey = await question(`Enter new public key for '${alias}': `);
@@ -103,7 +101,7 @@ async function managePeer(dataPath) {
             return;
         }
 
-        const allPeerAliases = await getPeerAliases(peersPath);
+        const allPeerAliases = await getPeerAliases(dataPath);
         for (const peerAlias of allPeerAliases) {
             if (peerAlias === alias) continue; // Don't check against the peer being edited
             const config = await getPeerConfig(dataPath, peerAlias);
@@ -120,7 +118,7 @@ async function managePeer(dataPath) {
     } else if (editChoice === '3') {
         const confirm = await question(`Are you sure you want to delete peer '${alias}'? (y/[n]): `);
         if (confirm.toLowerCase() === 'y') {
-            await fs.rm(path.join(peersPath, alias), { recursive: true, force: true });
+            await fs.rm(getPeerPath(dataPath, alias), { recursive: true, force: true });
             console.log(`Peer '${alias}' deleted successfully.`);
         } else {
             console.log('Deletion cancelled.');

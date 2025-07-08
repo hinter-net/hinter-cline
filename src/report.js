@@ -6,7 +6,6 @@ const { getPeerAliases } = require('./peer');
 const { getAllGroups } = require('./group');
 
 async function createDraft(dataPath) {
-    const peersPath = path.join(dataPath, 'peers');
     const entriesPath = path.join(dataPath, 'entries');
     console.log('\n--- Create a Report Draft ---');
     const title = await question('Enter report title: ');
@@ -15,7 +14,7 @@ async function createDraft(dataPath) {
         return;
     }
 
-    const allPeers = await getPeerAliases(peersPath);
+    const allPeers = await getPeerAliases(dataPath);
     const allGroups = await getAllGroups(dataPath);
     const allGroupNames = Array.from(allGroups.keys());
     
@@ -83,10 +82,9 @@ function extractFrontmatterAndContent(text) {
 }
 
 async function postReports(dataPath) {
-    const peersPath = path.join(dataPath, 'peers');
     const entriesPath = path.join(dataPath, 'entries');
     console.log('\n--- Post Reports ---');
-    const allPeerAliases = await getPeerAliases(peersPath);
+    const allPeerAliases = await getPeerAliases(dataPath);
     if (allPeerAliases.length === 0) {
         console.log('No peers configured.');
         return;
