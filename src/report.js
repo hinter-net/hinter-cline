@@ -2,11 +2,15 @@ const fs = require('fs').promises;
 const path = require('path');
 const yaml = require('js-yaml');
 const { question, slugify, selectFromList } = require('./utils');
-const { getPeerAliases } = require('./peer');
+const { getPeerAliases, getPeerPath } = require('./peer');
 const { getGroups } = require('./group');
 
+function getEntriesPath(dataPath) {
+    return path.join(dataPath, 'entries');
+}
+
 async function createDraft(dataPath) {
-    const entriesPath = path.join(dataPath, 'entries');
+    const entriesPath = getEntriesPath(dataPath);
     console.log('\n--- Create a report draft ---');
     const title = await question('Enter report title: ');
     if (!title) {
@@ -14,12 +18,13 @@ async function createDraft(dataPath) {
         return;
     }
 
-    const allPeers = await getPeerAliases(dataPath);
+    const peerAliases = await getPeerAliases(dataPath);
     const groups = await getGroups(dataPath);
-    const allGroupNames = Array.from(groups.keys());
+    const groupAliases = Array.from(groups.keys());
 
-    const availableRecipients = [...allGroupNames.map(g => `group:${g}`), ...allPeers];
+    const availableRecipients = [...groupAliases.map(groupAlias => `group:${groupAlias}`), ...peerAliases];
 
+    // Allow empty to for drafting
     let to;
     try {
         to = await selectFromList(availableRecipients, 'Select recipients for "to" list.');
@@ -55,7 +60,7 @@ destinationPath: "./${sourcePath}"
 
 `;
     await fs.writeFile(filePath, template);
-    console.log(`\nDraft created at: ${filePath}`);
+    console.log(`Draft created at: ${filePath}`);
 }
 
 async function* walk(dir) {
@@ -82,8 +87,7 @@ function extractFrontmatterAndContent(text) {
 }
 
 async function postReports(dataPath) {
-    const peersPath = path.join(dataPath, 'peers');
-    const entriesPath = path.join(dataPath, 'entries');
+    const entriesPath = getEntriesPath(dataPath);
     console.log('\n--- Post reports ---');
     const allPeerAliases = await getPeerAliases(dataPath);
     if (allPeerAliases.length === 0) {
@@ -164,7 +168,7 @@ async function postReports(dataPath) {
             })();
 
             for (const peerAlias of recipients) {
-                const destPath = path.join(peersPath, peerAlias, 'outgoing', destinationPath);
+                const destPath = path.join(getPeerPath(dataPath, peer), 'outgoing', destinationPath);
                 await fs.mkdir(path.dirname(destPath), { recursive: true });
                 await fs.writeFile(destPath, finalContent);
                 console.log(`Posted '${path.basename(sourcePath)}' to '${peerAlias}' at '${destinationPath}'`);
