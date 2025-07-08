@@ -3,13 +3,9 @@ const path = require('path');
 const { question, isValidSlug, isValidPublicKey, displayPeers } = require('./utils');
 
 async function getPeerConfig(peerPath) {
-    try {
-        const configPath = path.join(peerPath, 'hinter.config.json');
-        const content = await fs.readFile(configPath, 'utf8');
-        return JSON.parse(content);
-    } catch (e) {
-        return {}; // Return empty object if config doesn't exist or is invalid
-    }
+    const configPath = path.join(peerPath, 'hinter.config.json');
+    const configContent = await fs.readFile(configPath, 'utf8');
+    return JSON.parse(configContent);
 }
 
 async function updatePeerConfig(peerPath, newConfig) {
