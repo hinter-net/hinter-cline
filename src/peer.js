@@ -2,8 +2,16 @@ const fs = require('fs').promises;
 const path = require('path');
 const { question, isValidSlug, isValidPublicKey, displayPeers } = require('./utils');
 
-async function getPeerConfig(peerPath) {
-    const configPath = path.join(peerPath, 'hinter.config.json');
+function getPeersPath(dataPath) {
+    return path.join(dataPath, 'peers');
+}
+
+function getPeerPath(dataPath, alias) {
+    return path.join(getPeersPath(dataPath), alias);
+}
+
+async function getPeerConfig(dataPath, alias) {
+    const configPath = path.join(getPeerPath(dataPath, alias), 'hinter.config.json');
     const configContent = await fs.readFile(configPath, 'utf8');
     return JSON.parse(configContent);
 }
@@ -29,8 +37,8 @@ async function addPeer(dataPath) {
         return;
     }
 
-    const existingPeers = await getPeerAliases(peersPath);
-    if (existingPeers.includes(alias)) {
+    const existingPeerAliases = await getPeerAliases(peersPath);
+    if (existingPeerAliases.includes(alias)) {
         console.log('Error: A peer with this alias already exists.');
         return;
     }
@@ -41,10 +49,10 @@ async function addPeer(dataPath) {
         return;
     }
 
-    for (const peer of existingPeers) {
-        const config = await getPeerConfig(path.join(peersPath, peer));
+    for (const peerAlias of existingPeerAliases) {
+        const config = await getPeerConfig(dataPath, peerAlias);
         if (config.publicKey === publicKey) {
-            console.log(`Error: This public key is already used by peer '${peer}'.`);
+            console.log(`Error: This public key is already used by peer '${peerAlias}'.`);
             return;
         }
     }
@@ -95,17 +103,17 @@ async function managePeer(dataPath) {
             return;
         }
 
-        const allPeers = await getPeerAliases(peersPath);
-        for (const peer of allPeers) {
-            if (peer === alias) continue; // Don't check against the peer being edited
-            const config = await getPeerConfig(path.join(peersPath, peer));
+        const allPeerAliases = await getPeerAliases(peersPath);
+        for (const peerAlias of allPeerAliases) {
+            if (peerAlias === alias) continue; // Don't check against the peer being edited
+            const config = await getPeerConfig(dataPath, peerAlias);
             if (config.publicKey === newPublicKey) {
-                console.log(`Error: This public key is already used by peer '${peer}'.`);
+                console.log(`Error: This public key is already used by peer '${peerAlias}'.`);
                 return;
             }
         }
 
-        const config = await getPeerConfig(path.join(peersPath, alias));
+        const config = await getPeerConfig(dataPath, alias);
         config.publicKey = newPublicKey;
         await updatePeerConfig(path.join(peersPath, alias), config);
         console.log(`Public key for '${alias}' updated.`);

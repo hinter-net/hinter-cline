@@ -6,15 +6,15 @@ const { getPeerAliases, getPeerConfig, updatePeerConfig } = require('./peer');
 async function getAllGroups(dataPath) {
     const peersPath = path.join(dataPath, 'peers');
     const groups = new Map();
-    const peers = await getPeerAliases(peersPath);
-    for (const peer of peers) {
-        const config = await getPeerConfig(path.join(peersPath, peer));
+    const peerAliases = await getPeerAliases(peersPath);
+    for (const peerAlias of peerAliases) {
+        const config = await getPeerConfig(dataPath, peerAlias);
         const peerGroups = config['hinter-cline']?.groups || [];
         for (const group of peerGroups) {
             if (!groups.has(group)) {
                 groups.set(group, []);
             }
-            groups.get(group).push(peer);
+            groups.get(group).push(peerAlias);
         }
     }
     return groups;
@@ -50,7 +50,7 @@ async function addGroup(dataPath) {
         if (!isNaN(index) && index >= 0 && index < peers.length) {
             const peerAlias = peers[index];
             const peerPath = path.join(peersPath, peerAlias);
-            const config = await getPeerConfig(peerPath);
+            const config = await getPeerConfig(dataPath, peerAlias);
             
             config['hinter-cline'] = config['hinter-cline'] || {};
             config['hinter-cline'].groups = config['hinter-cline'].groups || [];
@@ -98,7 +98,7 @@ async function manageGroup(dataPath) {
             if (!isNaN(index) && index >= 0 && index < members.length) {
                 const peerAlias = members[index];
                 const peerPath = path.join(peersPath, peerAlias);
-                const config = await getPeerConfig(peerPath);
+                const config = await getPeerConfig(dataPath, peerAlias);
                 config['hinter-cline'].groups = config['hinter-cline'].groups.filter(g => g !== groupName);
                 await updatePeerConfig(peerPath, config);
                 console.log(`Removed '${peerAlias}' from group '${groupName}'.`);
@@ -120,7 +120,7 @@ async function manageGroup(dataPath) {
                 if (!isNaN(index) && index >= 0 && index < nonMembers.length) {
                     const peerAlias = nonMembers[index];
                     const peerPath = path.join(peersPath, peerAlias);
-                    const config = await getPeerConfig(peerPath);
+                    const config = await getPeerConfig(dataPath, peerAlias);
                     config['hinter-cline'] = config['hinter-cline'] || {};
                     config['hinter-cline'].groups = config['hinter-cline'].groups || [];
                     if (!config['hinter-cline'].groups.includes(groupName)) {
