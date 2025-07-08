@@ -3,7 +3,8 @@ const path = require('path');
 const { question, isValidSlug, displayPeers } = require('./utils');
 const { getPeerAliases, getPeerConfig, updatePeerConfig } = require('./peer');
 
-async function getAllGroups(peersPath) {
+async function getAllGroups(dataPath) {
+    const peersPath = path.join(dataPath, 'peers');
     const groups = new Map();
     const peers = await getPeerAliases(peersPath);
     for (const peer of peers) {
@@ -19,7 +20,8 @@ async function getAllGroups(peersPath) {
     return groups;
 }
 
-async function addGroup(peersPath) {
+async function addGroup(dataPath) {
+    const peersPath = path.join(dataPath, 'peers');
     console.log('\n--- Add a Group ---');
     const groupName = await question('Enter new group name: ');
     if (!isValidSlug(groupName)) {
@@ -27,7 +29,7 @@ async function addGroup(peersPath) {
         return;
     }
 
-    const allGroups = await getAllGroups(peersPath);
+    const allGroups = await getAllGroups(dataPath);
     if (allGroups.has(groupName)) {
         console.log('Error: A group with this name already exists.');
         return;
@@ -62,9 +64,10 @@ async function addGroup(peersPath) {
     }
 }
 
-async function manageGroup(peersPath) {
+async function manageGroup(dataPath) {
+    const peersPath = path.join(dataPath, 'peers');
     console.log('\n--- Manage a Group ---');
-    const allGroups = await getAllGroups(peersPath);
+    const allGroups = await getAllGroups(dataPath);
     if (allGroups.size === 0) {
         console.log('No groups to manage.');
         return;

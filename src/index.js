@@ -10,15 +10,10 @@ const { createDraft, postReports } = require('./report');
 // --- Path and Config ---
 
 const HINTER_CORE_DATA_PATH = path.join(__dirname, '..', 'hinter-core-data');
-const PEERS_PATH = path.join(HINTER_CORE_DATA_PATH, 'peers');
-const ENTRIES_PATH = path.join(HINTER_CORE_DATA_PATH, 'entries');
 
 // --- Main Loop ---
 
 async function main() {
-    await fs.mkdir(PEERS_PATH, { recursive: true });
-    await fs.mkdir(ENTRIES_PATH, { recursive: true });
-
     while (true) {
         console.log(`
 Hinter Helper
@@ -34,12 +29,12 @@ Hinter Helper
         const choice = await question('Choose an option: ');
 
         switch (choice.trim()) {
-            case '1': await createDraft(PEERS_PATH, ENTRIES_PATH); break;
-            case '2': await postReports(PEERS_PATH, ENTRIES_PATH); break;
-            case '3': await addPeer(PEERS_PATH); break;
-            case '4': await managePeer(PEERS_PATH); break;
-            case '5': await addGroup(PEERS_PATH); break;
-            case '6': await manageGroup(PEERS_PATH); break;
+            case '1': await createDraft(HINTER_CORE_DATA_PATH); break;
+            case '2': await postReports(HINTER_CORE_DATA_PATH); break;
+            case '3': await addPeer(HINTER_CORE_DATA_PATH); break;
+            case '4': await managePeer(HINTER_CORE_DATA_PATH); break;
+            case '5': await addGroup(HINTER_CORE_DATA_PATH); break;
+            case '6': await manageGroup(HINTER_CORE_DATA_PATH); break;
             case '7': console.log('Exiting.'); rl.close(); return;
             default: console.log('Invalid option.');
         }

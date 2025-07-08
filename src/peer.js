@@ -20,7 +20,8 @@ async function getPeerAliases(peersPath) {
         .map(peerDirectory => peerDirectory.name);
 }
 
-async function addPeer(peersPath) {
+async function addPeer(dataPath) {
+    const peersPath = path.join(dataPath, 'peers');
     console.log('\n--- Add a Peer ---');
     const alias = await question('Enter peer alias (e.g., alice-work): ');
     if (!isValidSlug(alias)) {
@@ -54,7 +55,8 @@ async function addPeer(peersPath) {
     console.log(`\nPeer '${alias}' added successfully.`);
 }
 
-async function managePeer(peersPath) {
+async function managePeer(dataPath) {
+    const peersPath = path.join(dataPath, 'peers');
     console.log('\n--- Manage a Peer ---');
     const peers = await getPeerAliases(peersPath);
     if (peers.length === 0) {
