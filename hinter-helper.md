@@ -4,7 +4,7 @@
 
 ## Running the Tool
 
-To run the tool, navigate to the `hinter-cline` project root in your terminal and run:
+Run `hinter-helper` using:
 
 ```sh
 npm start
@@ -66,7 +66,7 @@ except: [ "peer-alias-3" ]
 # sourcePath is empty, so the body of this file is sent.
 sourcePath: ""
 # destinationPath is empty, so it defaults to the draft's path.
-# If this draft is at "entries/foo/my-report.md", the destination will be "foo/my-report.md".
+# If this draft is at "entries/foo/my-report.md", the destinations will be peers/*/outgoing/foo/my-report.md
 destinationPath: ""
 ---
 
@@ -78,7 +78,7 @@ The frontmatter above will be stripped out automatically.
 
 ### Example: Sending a Separate File
 
-You can also use a draft file as a "control file" to send other types of files, like images or archives.
+You can also create a draft to send other types of files, like images or archives.
 
 ```yaml
 ---
@@ -86,7 +86,7 @@ to: [ "peer-alias-2" ]
 except: []
 # sourcePath points to the image we want to send.
 sourcePath: "./images/diagram.png"
-# The image will be saved to images/diagram.png on the peer's machine.
+# The image will be saved to peers/peer-alias-2/outgoing/images/diagram.png on the peer's machine.
 destinationPath: ""
 ---
 
@@ -100,10 +100,10 @@ This body text will be ignored, because sourcePath is not empty.
 -   `to`: An array of recipients. Can contain individual peer aliases (e.g., `"peer-1"`) and groups (e.g., `"group:friends"`).
 If this array is empty, the report will not be sent to anyone.
 -   `except`: An array of peers or groups to exclude from the `to` list.
--   `sourcePath`: (Optional) The relative path to the file that will be sent.
+-   `sourcePath`: (Optional) The relative path to the file that will be sent, including the filename.
 If left empty, the body of the draft file itself (with frontmatter removed) will be sent.
--   `destinationPath`: (Optional) The full path, including the filename, where the source file will be placed inside the recipient's `outgoing` directory.
-If left empty, it defaults to the relative path of the report draft file.
+-   `destinationPath`: (Optional) The full path, where the source file will be placed inside the recipient's `outgoing` directory, including the filename.
+If left empty, it defaults to the relative path of the report draft file, or the relative path of the source file if sourcePath is not empty.
 
 ### Important Rules
 
