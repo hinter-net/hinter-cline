@@ -14,15 +14,10 @@ async function updatePeerConfig(peerPath, newConfig) {
 }
 
 async function getPeerAliases(peersPath) {
-    try {
-        const directoryContents = await fs.readdir(peersPath, { withFileTypes: true });
-        return directoryContents
-            .filter(directoryContent => directoryContent.isDirectory())
-            .map(directoryContent => directoryContent.name);
-    } catch (error) {
-        if (error.code === 'ENOENT') return [];
-        throw error;
-    }
+    const peersDirectoryContents = await fs.readdir(peersPath, { withFileTypes: true });
+    return peersDirectoryContents
+        .filter(peersDirectoryContent => peersDirectoryContent.isDirectory())
+        .map(peerDirectory => peerDirectory.name);
 }
 
 async function addPeer(peersPath) {
