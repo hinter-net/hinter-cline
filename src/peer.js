@@ -30,14 +30,14 @@ async function getPeerAliases(dataPath) {
 
 async function addPeer(dataPath) {
     console.log('\n--- Add a Peer ---');
-    const alias = await question('Enter peer alias (e.g., alice-work): ');
-    if (!isValidSlug(alias)) {
+    const newPeerAlias = await question('Enter peer alias (e.g., alice-work): ');
+    if (!isValidSlug(newPeerAlias)) {
         console.log('Invalid alias format. Use lowercase letters, numbers, and single hyphens.');
         return;
     }
 
     const existingPeerAliases = await getPeerAliases(dataPath);
-    if (existingPeerAliases.includes(alias)) {
+    if (existingPeerAliases.includes(newPeerAlias)) {
         console.log('Error: A peer with this alias already exists.');
         return;
     }
@@ -56,10 +56,9 @@ async function addPeer(dataPath) {
         }
     }
 
-    const peerPath = getPeerPath(dataPath, alias);
-    await fs.mkdir(peerPath);
-    await fs.writeFile(path.join(peerPath, 'hinter.config.json'), JSON.stringify({ publicKey }, null, 2));
-    console.log(`\nPeer '${alias}' added successfully.`);
+    await fs.mkdir(getPeerPath(dataPath, newPeerAlias));
+    await updatePeerConfig(dataPath, newPeerAlias, { publicKey });
+    console.log(`\nPeer '${newPeerAlias}' added successfully.`);
 }
 
 async function managePeer(dataPath) {
