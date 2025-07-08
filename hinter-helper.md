@@ -15,19 +15,19 @@ You will be presented with a menu of options.
 ## Menu Options
 
 1.  **Create a report draft:** Interactively helps you create a new report draft.
-It will prompt you for a title and then allow you to select recipients (`to` and `except` lists) from a list of all known peers and groups.
-2.  **Post reports:** Scans the `hinter-core-data/entries/` directory for all report drafts and posts them to peers according to the rules in their frontmatter.
-3.  **Add a peer:** Prompts you to add a new peer by providing a unique, "slugified" alias and their 64-character public key.
-4.  **Manage a peer:** Allows you to select a peer from a list and then choose to either change their alias, update their public key, or delete the peer entirely.
-5.  **Add a group:** Lets you create a new group by giving it a name and selecting one or more peers to add to it.
-6.  **Manage a group:** Allows you to select an existing group to manage. You can add or remove peers from the selected group.
+It prompts for a title and lets you select recipients from a list of known peers and groups.
+2.  **Post reports:** Scans the `entries/` directory for all report drafts and posts them to the appropriate peers based on the rules in their frontmatter.
+3.  **Add a peer:** Guides you through adding a new peer by asking for a unique alias and their 64-character public key.
+4.  **Manage a peer:** Lets you select a peer to update their alias or public key, or to delete them entirely.
+5.  **Add a group:** Guides you through creating a new group and adding existing peers to it.
+6.  **Manage a group:** Lets you select an existing group to add or remove peers from it.
 7.  **Exit:** Closes the tool.
 
 ## Peer Groups
 
 You can organize peers into groups to make sending reports to multiple peers easier.
 A peer can belong to any number of groups.
-This is managed by adding a `groups` array to the peer's `hinter.config.json` file, which the tool handles for you via the "Add a group" and "Manage a group" menu options.
+The tool manages group memberships by adding a `groups` array to the `hinter-cline` object within each peer's `hinter.config.json` file.
 
 ### Example `hinter.config.json`
 
@@ -47,16 +47,13 @@ Here is an example of what a peer's configuration file looks like when they belo
 
 ## Report Draft Frontmatter
 
-The core of the reporting system is the YAML frontmatter at the top of each report draft (`.md`) file.
-
-When you use the "Create a report draft" option, the `to` and `except` fields are populated for you based on your interactive selections.
-The `sourcePath` and `destinationPath` fields are initially empty, and can often be left that way.
+The core of the reporting system is the YAML frontmatter at the top of each report draft file.
+When you create a draft, the `to` and `except` fields are populated interactively, while `sourcePath` and `destinationPath` are left empty for you to fill in.
 
 ### Example: Sending a Markdown Report
 
-This is the most common use case.
-The body of the draft file itself is sent as the report.
-If `sourcePath` and `destinationPath` are empty, they default to the path of the draft file itself.
+This is the most common use case, where the body of the draft file itself is sent as the report.
+If `sourcePath` and `destinationPath` are empty, they default to the relative path of the draft file.
 
 ```yaml
 ---
@@ -78,7 +75,7 @@ The frontmatter above will be stripped out automatically.
 
 ### Example: Sending a Separate File
 
-You can also create a draft to send other types of files, like images or archives.
+You can also use a draft as a "control file" to send other file types, like images or archives.
 
 ```yaml
 ---
@@ -97,21 +94,25 @@ This body text will be ignored, because sourcePath is not empty.
 
 ### Key Fields Explained
 
--   `to`: An array of recipients. Can contain individual peer aliases (e.g., `"peer-1"`) and groups (e.g., `"group:friends"`).
+- `to`: A list of recipients.
+Can contain individual peer aliases (e.g., `"peer-1"`) and groups (e.g., `"group:friends"`).
 If this array is empty, the report will not be sent to anyone.
--   `except`: An array of peers or groups to exclude from the `to` list.
--   `sourcePath`: (Optional) The relative path to the file that will be sent, including the filename.
-If left empty, the body of the draft file itself (with frontmatter removed) will be sent.
--   `destinationPath`: (Optional) The full path, where the source file will be placed inside the recipient's `outgoing` directory, including the filename.
-If left empty, it defaults to the relative path of the report draft file, or the relative path of the source file if sourcePath is not empty.
+- `except`: An array of peers or groups to exclude from the recipients.
+- `sourcePath`: (Optional) The path to the file to be sent, relative to the draft file.
+If left empty, the body of the draft itself (with frontmatter removed) is sent.
+- `destinationPath`: (Optional)  The destination path for the file in the peer's `outgoing` directory.
+If left empty, its default depends on `sourcePath`:
+  - If `sourcePath` is also empty, `destinationPath` defaults to the relative path of the draft file.
+  - If `sourcePath` is set, `destinationPath` defaults to the same path.
 
 ### Important Rules
 
--   **Validation:** The `postReports` command is strict and will stop with an error if it encounters any of the following issues in a report draft:
-    -   The YAML frontmatter cannot be parsed.
-    -   The `to` or `except` fields are missing.
-    -   An alias or group name listed in `to` or `except` does not exist.
-    -   The file specified in `sourcePath` cannot be read.
--   **Additive Posting:** The posting process is additive. It only copies files to the specified peers' `outgoing` directories.
+- **Validation:** The `postReports` command is strict and will stop if it encounters any of the following issues in a draft:
+  - The YAML frontmatter is malformed.
+  - The `to` or `except` fields are missing.
+  - A peer or group listed in `to` or `except` does not exist.
+  - The file specified in `sourcePath` cannot be found.
+- **Additive Posting:** The posting process is additive.
+It only copies files to peers' `outgoing` directories and will overwrite existing files if they have the same name and path.
 It does not delete files that were posted previously, even if a peer is later removed from a report's recipient list.
--   **YAML Stripping:** If the file being sent is a markdown file (either the draft itself or a separate `.md` file pointed to by `sourcePath`), its YAML frontmatter will be automatically removed before the file is sent.
+- **YAML Stripping:** If the file being sent is a markdown file (either the draft itself or an external `.md` file), its YAML frontmatter is automatically removed before sending.
