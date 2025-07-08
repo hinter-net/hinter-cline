@@ -102,23 +102,28 @@ async function postReports(dataPath) {
                 continue;
             }
             if (
-                !frontmatter.sourcePath ||
-                !frontmatter.destinationPath ||
                 !Array.isArray(frontmatter.to) ||
                 !Array.isArray(frontmatter.except)
             ) {
-                throw new Error(`Report draft ${filePath} is missing required fields (to, except, sourcePath, destinationPath).`);
+                throw new Error(`Report draft ${filePath} is missing required fields (to, except).`);
             }
 
-            const { to, except, sourcePath, destinationPath } = frontmatter;
+            const { to, except } = frontmatter;
+            const sourcePath = frontmatter.sourcePath || '';
+            const destinationPath = frontmatter.destinationPath || path.relative(entriesPath, filePath);
 
             let finalContent;
-            if (!sourcePath || sourcePath === path.basename(filePath)) {
+            if (!sourcePath) {
                 finalContent = body;
             } else {
                 const absoluteSourcePath = path.resolve(path.dirname(filePath), sourcePath);
                 try {
-                    finalContent = await fs.readFile(absoluteSourcePath);
+                    const sourceContentBuffer = await fs.readFile(absoluteSourcePath);
+                    if (path.extname(absoluteSourcePath) === '.md') {
+                        finalContent = extractFrontmatterAndContent(sourceContentBuffer.toString('utf8')).content;
+                    } else {
+                        finalContent = sourceContentBuffer;
+                    }
                 } catch (e) {
                     throw new Error(`Error reading source file ${absoluteSourcePath} for report draft ${filePath}`);
                 }
