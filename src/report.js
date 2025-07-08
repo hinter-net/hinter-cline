@@ -66,23 +66,23 @@ async function* walk(dir) {
 function extractFrontmatterAndContent(text) {
     const match = text.match(/^---\r?\n([\s\S]+?)\r?\n---/);
     if (!match) {
-        return { frontmatter: {}, content: text };
+        return { frontmatter: null, body: text, error: null };
     }
 
     try {
         const frontmatter = yaml.load(match[1]);
-        const content = text.slice(match[0].length).trim();
-        return { frontmatter, content };
+        const body = text.slice(match[0].length).trim();
+        return { frontmatter, body, error: null };
     } catch (e) {
-        return { frontmatter: null, content: text, error: e };
+        return { frontmatter: null, body: text, error: e };
     }
 }
 
 async function postReports(dataPath) {
     const entriesPath = getEntriesPath(dataPath);
     console.log('\n--- Post reports ---');
-    const allPeerAliases = await getPeerAliases(dataPath);
-    if (allPeerAliases.length === 0) {
+    const peerAliases = await getPeerAliases(dataPath);
+    if (peerAliases.length === 0) {
         console.log('No peers configured.');
         return;
     }
@@ -94,38 +94,34 @@ async function postReports(dataPath) {
             if (path.extname(filePath) !== '.md') continue;
 
             const reportDraftContent = await fs.readFile(filePath, 'utf8');
-            const { frontmatter, error } = extractFrontmatterAndContent(reportDraftContent);
-
-            if (error || !frontmatter) {
-                console.error(`Error parsing YAML for report draft ${filePath}. Skipping.`);
+            const { frontmatter, body, error } = extractFrontmatterAndContent(reportDraftContent);
+            if (error) {
+                throw new Error(`Error parsing YAML for report draft ${filePath}: ${error.message}`);
+            }
+            if (!frontmatter) {
                 continue;
             }
-
             if (
                 !frontmatter.sourcePath ||
                 !frontmatter.destinationPath ||
                 !Array.isArray(frontmatter.to) ||
                 !Array.isArray(frontmatter.except)
             ) {
-                console.error(`Report draft ${filePath} is missing required fields (sourcePath, destinationPath, to, except).`);
-                continue;
+                throw new Error(`Report draft ${filePath} is missing required fields (to, except, sourcePath, destinationPath).`);
             }
 
             const { to, except, sourcePath, destinationPath } = frontmatter;
 
-            const absoluteSourcePath = path.resolve(path.dirname(filePath), sourcePath);
-            let sourceContentBuffer;
-            try {
-                sourceContentBuffer = await fs.readFile(absoluteSourcePath);
-            } catch (e) {
-                console.error(`Error reading source file ${absoluteSourcePath} for report draft ${filePath}`);
-                continue;
-            }
-
-            let finalContent = sourceContentBuffer;
-            if (path.extname(absoluteSourcePath) === '.md') {
-                const { content } = extractFrontmatterAndContent(sourceContentBuffer.toString('utf8'));
-                finalContent = content;
+            let finalContent;
+            if (!sourcePath || sourcePath === path.basename(filePath)) {
+                finalContent = body;
+            } else {
+                const absoluteSourcePath = path.resolve(path.dirname(filePath), sourcePath);
+                try {
+                    finalContent = await fs.readFile(absoluteSourcePath);
+                } catch (e) {
+                    throw new Error(`Error reading source file ${absoluteSourcePath} for report draft ${filePath}`);
+                }
             }
 
             const recipients = (() => {
@@ -152,7 +148,7 @@ async function postReports(dataPath) {
                 const finalRecipients = [...expandedTo].filter(p => !expandedExcept.has(p));
 
                 for (const peer of finalRecipients) {
-                    if (!allPeerAliases.includes(peer)) {
+                    if (!peerAliases.includes(peer)) {
                         throw new Error(`Invalid peer alias '${peer}' found in report draft.`);
                     }
                 }
@@ -163,13 +159,12 @@ async function postReports(dataPath) {
                 const destPath = path.join(getPeerPath(dataPath, peerAlias), 'outgoing', destinationPath);
                 await fs.mkdir(path.dirname(destPath), { recursive: true });
                 await fs.writeFile(destPath, finalContent);
-                console.log(`Posted '${path.basename(sourcePath)}' to '${peerAlias}' at '${destinationPath}'`);
                 postCount++;
             }
         }
-        console.log(`\nFinished. A total of ${postCount} posts were made.`);
+        console.log(`Finished. A total of ${postCount} posts were made.`);
     } catch (e) {
-        console.error(`\nError during posting: ${e.message}`);
+        console.log(`Error during posting: ${e.message}`);
     }
 }
 
