@@ -60,13 +60,13 @@ If `sourcePath` and `destinationPath` are empty, they default to the path of the
 
 ```yaml
 ---
-to: ['peer-alias-1', 'group:my-friends']
+to: [ "peer-alias-1", "group:my-friends" ]
 # peer-alias-3 is a member of my-friends
-except: ['peer-alias-3']
+except: [ "peer-alias-3" ]
 # sourcePath is empty, so the body of this file is sent.
 sourcePath: ""
 # destinationPath is empty, so it defaults to the draft's path.
-# If this draft is at 'entries/foo/my-report.md', the destination will be 'foo/my-report.md'.
+# If this draft is at "entries/foo/my-report.md", the destination will be "foo/my-report.md".
 destinationPath: ""
 ---
 
@@ -82,7 +82,7 @@ You can also use a draft file as a "control file" to send other types of files, 
 
 ```yaml
 ---
-to: ['peer-alias-2']
+to: [ "peer-alias-2" ]
 except: []
 # sourcePath points to the image we want to send.
 sourcePath: "./images/diagram.png"
@@ -97,7 +97,7 @@ This body text will be ignored, because sourcePath is not empty.
 
 ### Key Fields Explained
 
--   `to`: An array of recipients. Can contain individual peer aliases (e.g., `'peer-1'`) and groups (e.g., `'group:friends'`).
+-   `to`: An array of recipients. Can contain individual peer aliases (e.g., `"peer-1"`) and groups (e.g., `"group:friends"`).
 If this array is empty, the report will not be sent to anyone.
 -   `except`: An array of peers or groups to exclude from the `to` list.
 -   `sourcePath`: (Optional) The relative path to the file that will be sent.
