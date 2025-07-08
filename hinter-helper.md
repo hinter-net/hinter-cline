@@ -1,6 +1,6 @@
 # `hinter-helper` CLI Tool
 
-`hinter-helper` is an interactive command-line tool for managing peers and report drafts according to `hinter-cline` conventions.
+`hinter-helper` is an interactive command-line tool for managing peers, groups, and report drafts according to `hinter-cline` conventions.
 
 ## Running the Tool
 
@@ -24,47 +24,78 @@ You will be presented with a menu of options.
 
 ## Peer Groups
 
-You can organize peers into groups to make sending reports to multiple peers easier. A peer can belong to any number of groups. This is managed by adding a `groups` array to the peer's `hinter.config.json` file, which the tool handles for you.
+You can organize peers into groups to make sending reports to multiple peers easier. A peer can belong to any number of groups. This is managed by adding a `groups` array to the peer's `hinter.config.json` file, which the tool handles for you via the "Add a group" and "Manage a group" menu options.
+
+### Example `hinter.config.json`
+
+Here is an example of what a peer's configuration file looks like when they belong to two groups:
+
+```json
+{
+  "publicKey": "a1b2c3d4...",
+  "hinter-cline": {
+    "groups": [
+      "my-friends",
+      "work-colleagues"
+    ]
+  }
+}
+```
 
 ## Report Draft Frontmatter
 
 The core of the reporting system is the YAML frontmatter at the top of each report draft (`.md`) file.
-When you use the "Create a report draft" option, the `to` and `except` fields are populated for you based on your interactive selections. The other fields are given default values that you can edit manually.
 
-All fields are required for posting.
+When you use the "Create a report draft" option, the `to` and `except` fields are populated for you based on your interactive selections. The `sourcePath` and `destinationPath` fields are initially empty, and can often be left that way.
+
+### Example: Sending a Markdown Report
+
+This is the most common use case. The body of the draft file itself is sent as the report. If `sourcePath` and `destinationPath` are empty, they default to the path of the draft file itself.
 
 ```yaml
 ---
-# To send to recipients, list their aliases or group names.
-# Use 'group:' prefix for groups.
-# If this list is empty, the report will be sent to NO ONE.
 to: ['peer-alias-1', 'group:my-friends']
-
-# To exclude recipients, list them here.
 except: ['peer-alias-3']
-
-# The path to the file you want to send, relative to this draft file.
-sourcePath: "./source-image.png"
-
-# The destination path for the file in the peer's 'outgoing' directory.
-# This must include the filename.
-destinationPath: "images/image-for-peer.png"
+# sourcePath is empty, so the body of this file is sent.
+sourcePath: ""
+# destinationPath is empty, so it defaults to the draft's path.
+# If this draft is at 'entries/foo/my-report.md', the destination will be 'foo/my-report.md'.
+destinationPath: ""
 ---
 
-# Report Title
+# My First Report
 
-This is the body of the report draft. It is NOT sent when posting;
-only the file at `sourcePath` is sent.
+This is the content that will be sent to the peers.
+The frontmatter above will be stripped out automatically.
+```
+
+### Example: Sending a Separate File
+
+You can also use a draft file as a "control file" to send other types of files, like images or archives.
+
+```yaml
+---
+to: ['peer-alias-2']
+except: []
+# sourcePath points to the image we want to send.
+sourcePath: "./attachments/diagram.png"
+# The image will be saved to this path on the peer's machine.
+destinationPath: "images/project-diagram.png"
+---
+
+# Control file for sending diagram.png
+
+This body text will be ignored, because sourcePath is not empty.
 ```
 
 ### Key Fields Explained
 
 -   `to`: An array of recipients. Can contain individual peer aliases (e.g., `'peer-1'`) and groups (e.g., `'group:friends'`). **If this array is empty, the report will not be sent to anyone.**
 -   `except`: An array of peers or groups to exclude from the `to` list.
--   `sourcePath`: The relative path to the file that will be sent. This can be the report draft itself (e.g., `./my-report.md`) or another file like an image or a zip archive.
--   `destinationPath`: The full path, including the filename, where the source file will be placed inside the recipient's `outgoing` directory. This allows you to organize files on your peer's machine.
+-   `sourcePath`: (Optional) The relative path to the file that will be sent. If left empty, the body of the draft file itself (with frontmatter removed) will be sent.
+-   `destinationPath`: (Optional) The full path, including the filename, where the source file will be placed inside the recipient's `outgoing` directory. If left empty, it defaults to the relative path of the report draft file.
 
 ### Important Rules
 
--   **Validation:** The `Post all reports` command will fail with an error if any alias listed in `to` or `except` does not correspond to a configured peer.
--   **YAML Stripping:** If the `sourcePath` points to a markdown (`.md`) file, its YAML frontmatter will be automatically removed before the file is sent to the peer.
+-   **Validation:** The `postReports` command will stop and show an error if any alias or group listed in `to` or `except` does not exist.
+-   **YAML Stripping:** If the file being sent is a markdown file (either the draft itself or a separate `.md` file pointed to by `sourcePath`), its YAML frontmatter will be automatically removed before the file is sent.
