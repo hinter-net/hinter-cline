@@ -112,4 +112,6 @@ If left empty, it defaults to the relative path of the report draft file.
     -   The `to` or `except` fields are missing.
     -   An alias or group name listed in `to` or `except` does not exist.
     -   The file specified in `sourcePath` cannot be read.
+-   **Additive Posting:** The posting process is additive. It only copies files to the specified peers' `outgoing` directories.
+It does not delete files that were posted previously, even if a peer is later removed from a report's recipient list.
 -   **YAML Stripping:** If the file being sent is a markdown file (either the draft itself or a separate `.md` file pointed to by `sourcePath`), its YAML frontmatter will be automatically removed before the file is sent.
