@@ -1,9 +1,7 @@
-const fs = require('fs').promises;
-const path = require('path');
 const { question, isValidSlug, displayPeers } = require('./utils');
 const { getPeerAliases, getPeerConfig, updatePeerConfig } = require('./peer');
 
-async function getAllGroups(dataPath) {
+async function getGroups(dataPath) {
     const groups = new Map();
     const peerAliases = await getPeerAliases(dataPath);
     for (const peerAlias of peerAliases) {
@@ -27,8 +25,8 @@ async function addGroup(dataPath) {
         return;
     }
 
-    const allGroups = await getAllGroups(dataPath);
-    if (allGroups.has(groupName)) {
+    const groups = await getGroups(dataPath);
+    if (groups.has(groupName)) {
         console.log('Error: A group with this name already exists.');
         return;
     }
@@ -63,13 +61,13 @@ async function addGroup(dataPath) {
 
 async function manageGroup(dataPath) {
     console.log('\n--- Manage a Group ---');
-    const allGroups = await getAllGroups(dataPath);
-    if (allGroups.size === 0) {
+    const groups = await getGroups(dataPath);
+    if (groups.size === 0) {
         console.log('No groups to manage.');
         return;
     }
 
-    const groupNames = Array.from(allGroups.keys());
+    const groupNames = Array.from(groups.keys());
     console.log('Available groups:');
     groupNames.forEach((name, i) => console.log(`[${i+1}] ${name}`));
     
@@ -82,7 +80,7 @@ async function manageGroup(dataPath) {
     }
 
     const groupName = groupNames[groupIndex];
-    const members = allGroups.get(groupName);
+    const members = groups.get(groupName);
     console.log(`\nMembers of '${groupName}':`);
     displayPeers(members);
 
@@ -103,7 +101,7 @@ async function manageGroup(dataPath) {
 
     // Add peers
     const allPeers = await getPeerAliases(dataPath);
-    const currentMembers = allGroups.get(groupName) || [];
+    const currentMembers = groups.get(groupName) || [];
     const nonMembers = allPeers.filter(p => !currentMembers.includes(p));
     if (nonMembers.length > 0) {
         console.log('\nPeers not in this group:');
@@ -129,7 +127,7 @@ async function manageGroup(dataPath) {
 }
 
 module.exports = {
-    getAllGroups,
+    getGroups,
     addGroup,
     manageGroup
 };

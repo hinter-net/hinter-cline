@@ -3,7 +3,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 const { question, slugify } = require('./utils');
 const { getPeerAliases } = require('./peer');
-const { getAllGroups } = require('./group');
+const { getGroups } = require('./group');
 
 async function createDraft(dataPath) {
     const entriesPath = path.join(dataPath, 'entries');
@@ -15,8 +15,8 @@ async function createDraft(dataPath) {
     }
 
     const allPeers = await getPeerAliases(dataPath);
-    const allGroups = await getAllGroups(dataPath);
-    const allGroupNames = Array.from(allGroups.keys());
+    const groups = await getGroups(dataPath);
+    const allGroupNames = Array.from(groups.keys());
     
     const availableRecipients = [...allGroupNames.map(g => `group:${g}`), ...allPeers];
     
@@ -82,6 +82,7 @@ function extractFrontmatterAndContent(text) {
 }
 
 async function postReports(dataPath) {
+    const peersPath = path.join(dataPath, 'peers');
     const entriesPath = path.join(dataPath, 'entries');
     console.log('\n--- Post Reports ---');
     const allPeerAliases = await getPeerAliases(dataPath);
@@ -89,7 +90,7 @@ async function postReports(dataPath) {
         console.log('No peers configured.');
         return;
     }
-    const allGroups = await getAllGroups(dataPath);
+    const groups = await getGroups(dataPath);
 
     let postCount = 0;
     try {
@@ -136,7 +137,7 @@ async function postReports(dataPath) {
                 to.forEach(item => {
                     if (item.startsWith('group:')) {
                         const groupName = item.substring(6);
-                        (allGroups.get(groupName) || []).forEach(p => expandedTo.add(p));
+                        (groups.get(groupName) || []).forEach(p => expandedTo.add(p));
                     } else {
                         expandedTo.add(item);
                     }
@@ -146,7 +147,7 @@ async function postReports(dataPath) {
                 except.forEach(item => {
                     if (item.startsWith('group:')) {
                         const groupName = item.substring(6);
-                        (allGroups.get(groupName) || []).forEach(p => expandedExcept.add(p));
+                        (groups.get(groupName) || []).forEach(p => expandedExcept.add(p));
                     } else {
                         expandedExcept.add(item);
                     }
