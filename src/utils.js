@@ -28,10 +28,10 @@ function slugify(text) {
         .replace(/-+$/, '');
 }
 
-function displayPeers(peerAliases) {
+function displayList(items) {
     let output = '';
-    peerAliases.forEach((peerAlias, index) => {
-        output += `[${index + 1}]`.padEnd(5) + `${peerAlias.padEnd(20)}`;
+    items.forEach((item, index) => {
+        output += `[${index + 1}]`.padEnd(5) + `${item.padEnd(20)}`;
         if ((index + 1) % 4 === 0) {
             output += '\n';
         }
@@ -45,5 +45,5 @@ module.exports = {
     isValidSlug,
     isValidPublicKey,
     slugify,
-    displayPeers
+    displayList
 };

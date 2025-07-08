@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
-const { question, isValidSlug, isValidPublicKey, displayPeers } = require('./utils');
+const { question, isValidSlug, isValidPublicKey, displayList } = require('./utils');
 
 function getPeersPath(dataPath) {
     return path.join(dataPath, 'peers');
@@ -69,7 +69,7 @@ async function managePeer(dataPath) {
         return;
     }
 
-    displayPeers(peerAliases);
+    displayList(peerAliases);
     const choice = await question('Choose a peer to manage (number): ');
     const peerIndex = parseInt(choice, 10) - 1;
 

@@ -1,4 +1,4 @@
-const { question, isValidSlug, displayPeers } = require('./utils');
+const { question, isValidSlug, displayList } = require('./utils');
 const { getPeerAliases, getPeerConfig, updatePeerConfig } = require('./peer');
 
 async function getGroups(dataPath) {
@@ -38,7 +38,7 @@ async function addGroup(dataPath) {
     }
 
     console.log('Available peers:');
-    displayPeers(peerAliases);
+    displayList(peerAliases);
     const choices = await question('Select peers to add (comma-separated numbers, e.g., 1,3,4): ');
     const peerIndices = choices.split(',').map(n => parseInt(n.trim(), 10) - 1);
 
@@ -69,7 +69,7 @@ async function manageGroup(dataPath) {
 
     const groupAliases = Array.from(groups.keys());
     console.log('Available groups:');
-    groupAliases.forEach((groupAlias, i) => console.log(`[${i + 1}] ${groupAlias}`));
+    displayList(groupAliases);
 
     const choice = await question('Choose a group to manage (number): ');
     const groupIndex = parseInt(choice.trim(), 10) - 1;
@@ -82,7 +82,7 @@ async function manageGroup(dataPath) {
     const managedGroupAlias = groupAliases[groupIndex];
     const managedGroupPeerAliases = groups.get(managedGroupAlias);
     console.log(`\nPeers in '${managedGroupAlias}':`);
-    displayPeers(managedGroupPeerAliases);
+    displayList(managedGroupPeerAliases);
 
     // Remove peers
     const removeChoices = await question('Select peers to remove from group (comma-separated numbers, press Enter to skip): ');
@@ -107,7 +107,7 @@ async function manageGroup(dataPath) {
     const managedGroupNonmemberPeerAliases = peerAliases.filter(p => !managedGroupPeerAliases.includes(p));
     if (managedGroupNonmemberPeerAliases.length > 0) {
         console.log('\nPeers not in this group:');
-        displayPeers(managedGroupNonmemberPeerAliases);
+        displayList(managedGroupNonmemberPeerAliases);
         const addChoices = await question('Select peers to add to group (comma-separated numbers, press Enter to skip): ');
         if (addChoices) {
             const indicesToAdd = addChoices.split(',').map(n => parseInt(n.trim(), 10) - 1);

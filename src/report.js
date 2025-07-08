@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const yaml = require('js-yaml');
-const { question, slugify } = require('./utils');
+const { question, slugify, displayList } = require('./utils');
 const { getPeerAliases } = require('./peer');
 const { getGroups } = require('./group');
 
@@ -17,11 +17,11 @@ async function createDraft(dataPath) {
     const allPeers = await getPeerAliases(dataPath);
     const groups = await getGroups(dataPath);
     const allGroupNames = Array.from(groups.keys());
-    
+
     const availableRecipients = [...allGroupNames.map(g => `group:${g}`), ...allPeers];
-    
+
     console.log('Available recipients:');
-    availableRecipients.forEach((r, i) => console.log(`[${i + 1}] ${r}`));
+    displayList(availableRecipients);
 
     const toChoices = await question('Select recipients for "to" list (comma-separated numbers): ');
     const toIndices = toChoices.split(',').map(n => parseInt(n.trim(), 10) - 1);
@@ -106,7 +106,7 @@ async function postReports(dataPath) {
             }
 
             if (
-                !frontmatter.sourcePath || 
+                !frontmatter.sourcePath ||
                 !frontmatter.destinationPath ||
                 !Array.isArray(frontmatter.to) ||
                 !Array.isArray(frontmatter.except)
@@ -154,7 +154,7 @@ async function postReports(dataPath) {
                 });
 
                 const finalRecipients = [...expandedTo].filter(p => !expandedExcept.has(p));
-                
+
                 for (const peer of finalRecipients) {
                     if (!allPeerAliases.includes(peer)) {
                         throw new Error(`Invalid peer alias '${peer}' found in report draft.`);
