@@ -81,7 +81,7 @@ async function managePeer(dataPath) {
         return;
     }
     const managedPeerAlias = selectedPeerAliases[0];
-    const editChoice = await question(`What do you want to do with '${managedPeerAlias}'? (1. Change alias, 2. Change public key, 3. Delete peer): `);
+    const editChoice = await question(`What do you want to do with '${managedPeerAlias}'? (1. Change alias, 2. Change public key, 3. Delete peer, 4. Go back): `);
 
     if (editChoice === '1') {
         const newAlias = await question(`Enter new alias for '${managedPeerAlias}': `);
@@ -123,12 +123,15 @@ async function managePeer(dataPath) {
         } else {
             console.log('Deletion cancelled.');
         }
-    } else {
+    } else if (editChoice === '4') {
+    }
+    else {
         console.log('Invalid choice.');
     }
 }
 
 module.exports = {
+    getPeerPath,
     getPeerAliases,
     addPeer,
     managePeer,
