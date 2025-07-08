@@ -61,7 +61,7 @@ If `sourcePath` and `destinationPath` are empty, they default to the path of the
 ```yaml
 ---
 to: [ "peer-alias-1", "group:my-friends" ]
-# peer-alias-3 is a member of my-friends
+# Say peer-alias-3 is a member of my-friends and we don't want them to receive the report
 except: [ "peer-alias-3" ]
 # sourcePath is empty, so the body of this file is sent.
 sourcePath: ""
