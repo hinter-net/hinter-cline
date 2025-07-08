@@ -33,7 +33,7 @@ async function addGroup(dataPath) {
 
     const peerAliases = await getPeerAliases(dataPath);
     if (peerAliases.length === 0) {
-        console.log('No peers exist to add to a group.');
+        console.log('No peers exist to add to a group. Group not added.');
         return;
     }
 
