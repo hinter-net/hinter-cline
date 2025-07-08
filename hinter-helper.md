@@ -55,6 +55,7 @@ This is the most common use case. The body of the draft file itself is sent as t
 ```yaml
 ---
 to: ['peer-alias-1', 'group:my-friends']
+# peer-alias-3 is a member of my-friends
 except: ['peer-alias-3']
 # sourcePath is empty, so the body of this file is sent.
 sourcePath: ""
@@ -78,9 +79,9 @@ You can also use a draft file as a "control file" to send other types of files, 
 to: ['peer-alias-2']
 except: []
 # sourcePath points to the image we want to send.
-sourcePath: "./attachments/diagram.png"
-# The image will be saved to this path on the peer's machine.
-destinationPath: "images/project-diagram.png"
+sourcePath: "./images/diagram.png"
+# The image will be saved to images/diagram.png on the peer's machine.
+destinationPath: ""
 ---
 
 # Control file for sending diagram.png
