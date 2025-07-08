@@ -110,7 +110,11 @@ async function postReports(dataPath) {
 
             const { to, except } = frontmatter;
             const sourcePath = frontmatter.sourcePath || '';
-            const destinationPath = frontmatter.destinationPath || path.relative(entriesPath, filePath);
+
+            let destinationPath = frontmatter.destinationPath;
+            if (!destinationPath) {
+                destinationPath = sourcePath || path.relative(entriesPath, filePath);
+            }
 
             let finalContent;
             if (!sourcePath) {
