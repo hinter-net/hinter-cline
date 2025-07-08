@@ -15,10 +15,10 @@ async function updatePeerConfig(peerPath, newConfig) {
 
 async function getPeerAliases(peersPath) {
     try {
-        const dirents = await fs.readdir(peersPath, { withFileTypes: true });
-        return dirents
-            .filter(dirent => dirent.isDirectory())
-            .map(dirent => dirent.name);
+        const directoryContents = await fs.readdir(peersPath, { withFileTypes: true });
+        return directoryContents
+            .filter(directoryContent => directoryContent.isDirectory())
+            .map(directoryContent => directoryContent.name);
     } catch (error) {
         if (error.code === 'ENOENT') return [];
         throw error;
