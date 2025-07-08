@@ -14,7 +14,8 @@ You will be presented with a menu of options.
 
 ## Menu Options
 
-1.  **Create a report draft:** Interactively helps you create a new report draft. It will prompt you for a title and then allow you to select recipients (`to` and `except` lists) from a list of all known peers and groups.
+1.  **Create a report draft:** Interactively helps you create a new report draft.
+It will prompt you for a title and then allow you to select recipients (`to` and `except` lists) from a list of all known peers and groups.
 2.  **Post reports:** Scans the `hinter-core-data/entries/` directory for all report drafts and posts them to peers according to the rules in their frontmatter.
 3.  **Add a peer:** Prompts you to add a new peer by providing a unique, "slugified" alias and their 64-character public key.
 4.  **Manage a peer:** Allows you to select a peer from a list and then choose to either change their alias, update their public key, or delete the peer entirely.
@@ -24,7 +25,9 @@ You will be presented with a menu of options.
 
 ## Peer Groups
 
-You can organize peers into groups to make sending reports to multiple peers easier. A peer can belong to any number of groups. This is managed by adding a `groups` array to the peer's `hinter.config.json` file, which the tool handles for you via the "Add a group" and "Manage a group" menu options.
+You can organize peers into groups to make sending reports to multiple peers easier.
+A peer can belong to any number of groups.
+This is managed by adding a `groups` array to the peer's `hinter.config.json` file, which the tool handles for you via the "Add a group" and "Manage a group" menu options.
 
 ### Example `hinter.config.json`
 
@@ -46,11 +49,14 @@ Here is an example of what a peer's configuration file looks like when they belo
 
 The core of the reporting system is the YAML frontmatter at the top of each report draft (`.md`) file.
 
-When you use the "Create a report draft" option, the `to` and `except` fields are populated for you based on your interactive selections. The `sourcePath` and `destinationPath` fields are initially empty, and can often be left that way.
+When you use the "Create a report draft" option, the `to` and `except` fields are populated for you based on your interactive selections.
+The `sourcePath` and `destinationPath` fields are initially empty, and can often be left that way.
 
 ### Example: Sending a Markdown Report
 
-This is the most common use case. The body of the draft file itself is sent as the report. If `sourcePath` and `destinationPath` are empty, they default to the path of the draft file itself.
+This is the most common use case.
+The body of the draft file itself is sent as the report.
+If `sourcePath` and `destinationPath` are empty, they default to the path of the draft file itself.
 
 ```yaml
 ---
@@ -91,12 +97,19 @@ This body text will be ignored, because sourcePath is not empty.
 
 ### Key Fields Explained
 
--   `to`: An array of recipients. Can contain individual peer aliases (e.g., `'peer-1'`) and groups (e.g., `'group:friends'`). **If this array is empty, the report will not be sent to anyone.**
+-   `to`: An array of recipients. Can contain individual peer aliases (e.g., `'peer-1'`) and groups (e.g., `'group:friends'`).
+If this array is empty, the report will not be sent to anyone.
 -   `except`: An array of peers or groups to exclude from the `to` list.
--   `sourcePath`: (Optional) The relative path to the file that will be sent. If left empty, the body of the draft file itself (with frontmatter removed) will be sent.
--   `destinationPath`: (Optional) The full path, including the filename, where the source file will be placed inside the recipient's `outgoing` directory. If left empty, it defaults to the relative path of the report draft file.
+-   `sourcePath`: (Optional) The relative path to the file that will be sent.
+If left empty, the body of the draft file itself (with frontmatter removed) will be sent.
+-   `destinationPath`: (Optional) The full path, including the filename, where the source file will be placed inside the recipient's `outgoing` directory.
+If left empty, it defaults to the relative path of the report draft file.
 
 ### Important Rules
 
--   **Validation:** The `postReports` command will stop and show an error if any alias or group listed in `to` or `except` does not exist.
+-   **Validation:** The `postReports` command is strict and will stop with an error if it encounters any of the following issues in a report draft:
+    -   The YAML frontmatter cannot be parsed.
+    -   The `to` or `except` fields are missing.
+    -   An alias or group name listed in `to` or `except` does not exist.
+    -   The file specified in `sourcePath` cannot be read.
 -   **YAML Stripping:** If the file being sent is a markdown file (either the draft itself or a separate `.md` file pointed to by `sourcePath`), its YAML frontmatter will be automatically removed before the file is sent.
