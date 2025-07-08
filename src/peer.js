@@ -63,46 +63,45 @@ async function addPeer(dataPath) {
 
 async function managePeer(dataPath) {
     console.log('\n--- Manage a Peer ---');
-    const peers = await getPeerAliases(dataPath);
-    if (peers.length === 0) {
+    const peerAliases = await getPeerAliases(dataPath);
+    if (peerAliases.length === 0) {
         console.log('No peers to manage.');
         return;
     }
 
-    displayPeers(peers);
+    displayPeers(peerAliases);
     const choice = await question('Choose a peer to manage (number): ');
     const peerIndex = parseInt(choice, 10) - 1;
 
-    if (isNaN(peerIndex) || peerIndex < 0 || peerIndex >= peers.length) {
+    if (isNaN(peerIndex) || peerIndex < 0 || peerIndex >= peerAliases.length) {
         console.log('Invalid selection.');
         return;
     }
 
-    const alias = peers[peerIndex];
-    const editChoice = await question(`What do you want to do with '${alias}'? (1. Change Alias, 2. Change Public Key, 3. Delete Peer): `);
+    const managedPeerAlias = peerAliases[peerIndex];
+    const editChoice = await question(`What do you want to do with '${managedPeerAlias}'? (1. Change Alias, 2. Change Public Key, 3. Delete Peer): `);
 
     if (editChoice === '1') {
-        const newAlias = await question(`Enter new alias for '${alias}': `);
+        const newAlias = await question(`Enter new alias for '${managedPeerAlias}': `);
         if (!isValidSlug(newAlias)) {
             console.log('Invalid alias format.');
             return;
         }
-        if (peers.includes(newAlias)) {
+        if (peerAliases.includes(newAlias)) {
             console.log('Error: A peer with this alias already exists.');
             return;
         }
-        await fs.rename(getPeerPath(dataPath, alias), getPeerPath(dataPath, newAlias));
-        console.log(`Peer alias updated from '${alias}' to '${newAlias}'.`);
+        await fs.rename(getPeerPath(dataPath, managedPeerAlias), getPeerPath(dataPath, newAlias));
+        console.log(`Peer alias updated from '${managedPeerAlias}' to '${newAlias}'.`);
     } else if (editChoice === '2') {
-        const newPublicKey = await question(`Enter new public key for '${alias}': `);
+        const newPublicKey = await question(`Enter new public key for '${managedPeerAlias}': `);
         if (!isValidPublicKey(newPublicKey)) {
             console.log('Invalid public key format.');
             return;
         }
 
-        const allPeerAliases = await getPeerAliases(dataPath);
-        for (const peerAlias of allPeerAliases) {
-            if (peerAlias === alias) continue; // Don't check against the peer being edited
+        for (const peerAlias of peerAliases) {
+            if (peerAlias === managedPeerAlias) continue; // Don't check against the peer being edited
             const config = await getPeerConfig(dataPath, peerAlias);
             if (config.publicKey === newPublicKey) {
                 console.log(`Error: This public key is already used by peer '${peerAlias}'.`);
@@ -110,15 +109,15 @@ async function managePeer(dataPath) {
             }
         }
 
-        const config = await getPeerConfig(dataPath, alias);
+        const config = await getPeerConfig(dataPath, managedPeerAlias);
         config.publicKey = newPublicKey;
-        await updatePeerConfig(dataPath, alias, config);
-        console.log(`Public key for '${alias}' updated.`);
+        await updatePeerConfig(dataPath, managedPeerAlias, config);
+        console.log(`Public key for '${managedPeerAlias}' updated.`);
     } else if (editChoice === '3') {
-        const confirm = await question(`Are you sure you want to delete peer '${alias}'? (y/[n]): `);
+        const confirm = await question(`Are you sure you want to delete peer '${managedPeerAlias}'? (y/[n]): `);
         if (confirm.toLowerCase() === 'y') {
-            await fs.rm(getPeerPath(dataPath, alias), { recursive: true, force: true });
-            console.log(`Peer '${alias}' deleted successfully.`);
+            await fs.rm(getPeerPath(dataPath, managedPeerAlias), { recursive: true, force: true });
+            console.log(`Peer '${managedPeerAlias}' deleted successfully.`);
         } else {
             console.log('Deletion cancelled.');
         }
