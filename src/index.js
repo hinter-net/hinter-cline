@@ -1,19 +1,14 @@
 #!/usr/bin/env node
 
-const fs = require('fs').promises;
 const path = require('path');
 const { rl, question } = require('./utils');
 const { addPeer, managePeer } = require('./peer');
 const { addGroup, manageGroup } = require('./group');
 const { createDraft, syncReports } = require('./report');
 
-// --- Path and Config ---
-
 const HINTER_CORE_DATA_PATH = path.join(__dirname, '..', 'hinter-core-data');
 
-// --- Main Loop ---
-
-async function main() {
+async function cli() {
     while (true) {
         console.log(`
 Hinter Helper
@@ -42,7 +37,11 @@ Hinter Helper
     }
 }
 
-main().catch(err => {
-    console.error(`\nAn unexpected error occurred: ${err.message}`);
-    rl.close();
-});
+if (require.main === module) {
+    cli().catch(err => {
+        console.error(`\nAn unexpected error occurred: ${err.message}`);
+        rl.close();
+    });
+}
+
+module.exports = cli;
