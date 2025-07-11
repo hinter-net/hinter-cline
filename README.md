@@ -8,6 +8,7 @@ See [instructions](./instructions.md) to run `hinter-cline` in a Docker containe
 ## Features
 
 `hinter-cline` wraps two solutions in a Docker container for portability and security:
+
 - [`code-server`,](https://github.com/coder/code-server) an enhanced fork of VS Code that you can use through your browser
 - [Cline,](https://github.com/cline/cline) a coding assistant for VS Code
 
@@ -16,6 +17,7 @@ See [instructions](./instructions.md) to run `hinter-cline` in a Docker containe
 In addition, `hinter-cline` includes [`hinter-helper`,](./hinter-helper.md) an interactive CLI tool that facilitates some hinter workflows.
 
 Its features include:
+
 - Managing peers (add, edit, remove)
 - Organizing peers into groups
 - Creating and posting flexible report drafts to peers and groups

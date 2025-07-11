@@ -15,9 +15,9 @@ You will be presented with a menu of options.
 ## Menu Options
 
 1.  **Create a report draft:** Interactively helps you create a new report draft.
-It prompts for a title and lets you select recipients from a list of known peers and groups.
+    It prompts for a title and lets you select recipients from a list of known peers and groups.
 2.  **Sync reports:** Scans the `entries/` directory for all report drafts and synchronizes them with the appropriate peers.
-This ensures that each peer's `outgoing` directory perfectly reflects the reports they are meant to receive, adding new ones and removing any that are no longer targeted at them.
+    This ensures that each peer's `outgoing` directory perfectly reflects the reports they are meant to receive, adding new ones and removing any that are no longer targeted at them.
 3.  **Add a peer:** Guides you through adding a new peer by asking for a unique alias and their 64-character public key.
 4.  **Manage a peer:** Lets you select a peer to update their alias or public key, or to delete them entirely.
 5.  **Add a group:** Guides you through creating a new group and adding existing peers to it.
@@ -38,10 +38,7 @@ Here is an example of what a peer's configuration file looks like when they belo
 {
   "publicKey": "a1b2c3d4...",
   "hinter-cline": {
-    "groups": [
-      "my-friends",
-      "work-colleagues"
-    ]
+    "groups": ["my-friends", "work-colleagues"]
   }
 }
 ```
@@ -58,16 +55,15 @@ If `sourcePath` and `destinationPath` are empty, they default to the relative pa
 
 ```yaml
 ---
-to: [ "peer-alias-1", "group:my-friends" ]
+to: ["peer-alias-1", "group:my-friends"]
 # Say peer-alias-3 is a member of my-friends and we don't want them to receive the report
-except: [ "peer-alias-3" ]
+except: ["peer-alias-3"]
 # sourcePath is empty, so the body of this file is sent.
 sourcePath: ""
 # destinationPath is empty, so it defaults to the draft's path.
 # If this draft is at "entries/foo/my-report.md", the destinations will be peers/*/outgoing/foo/my-report.md
 destinationPath: ""
 ---
-
 # My First Report
 
 This is the content that will be sent to the peers.
@@ -80,14 +76,13 @@ You can also use a draft as a "control file" to send other file types, like imag
 
 ```yaml
 ---
-to: [ "peer-alias-2" ]
+to: ["peer-alias-2"]
 except: []
 # sourcePath points to the image we want to send.
 sourcePath: "./images/diagram.png"
 # The image will be saved to peers/peer-alias-2/outgoing/images/diagram.png on the peer's machine.
 destinationPath: ""
 ---
-
 # Control file for sending diagram.png
 
 This body text will be ignored, because sourcePath is not empty.
@@ -100,7 +95,7 @@ The directory structure will be preserved at the destination.
 
 ```yaml
 ---
-to: [ "peer-alias-1" ]
+to: ["peer-alias-1"]
 except: []
 # sourcePath points to the directory we want to send.
 sourcePath: "./meme-folder"
@@ -112,13 +107,13 @@ destinationPath: ""
 ### Key Fields Explained
 
 - `to`: A list of recipients.
-Can contain individual peer aliases (e.g., `"peer-1"`) and groups (e.g., `"group:friends"`).
-If this array is empty, the report will not be sent to anyone.
+  Can contain individual peer aliases (e.g., `"peer-1"`) and groups (e.g., `"group:friends"`).
+  If this array is empty, the report will not be sent to anyone.
 - `except`: An array of peers or groups to exclude from the recipients.
 - `sourcePath`: (Optional) The path to the file or directory to be sent, relative to the draft file.
-If left empty, the body of the draft itself (with frontmatter removed) is sent.
+  If left empty, the body of the draft itself (with frontmatter removed) is sent.
 - `destinationPath`: (Optional) The destination path for the file or directory in the peer's `outgoing` directory.
-If left empty, it defaults to the name of the source file or directory.
+  If left empty, it defaults to the name of the source file or directory.
 
 ### Important Rules
 
@@ -128,7 +123,7 @@ If left empty, it defaults to the name of the source file or directory.
   - A peer or group listed in `to` or `except` does not exist.
   - The file specified in `sourcePath` cannot be found.
 - **Synchronization:** The sync process is not additive.
-It ensures that a peer's `outgoing` directory is an exact mirror of the reports they should receive.
+  It ensures that a peer's `outgoing` directory is an exact mirror of the reports they should receive.
   - **Adds/Updates:** New or changed reports are written to the `outgoing` directory.
   - **Deletes:** Reports that were previously sent but are no longer targeted at a peer (e.g., the draft was deleted or the peer was removed from the `to` list) will be deleted from their `outgoing` directory.
 - **YAML Stripping:** When the content of the draft file itself is being sent (i.e., `sourcePath` is empty), its YAML frontmatter is automatically removed. If an external Markdown file is specified in `sourcePath`, it is sent as-is, with its frontmatter intact.
