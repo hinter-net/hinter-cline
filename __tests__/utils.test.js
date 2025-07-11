@@ -68,19 +68,57 @@ describe('utils', () => {
     });
 
     describe('displayList', () => {
-        it('should display a list of items', () => {
-            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-            displayList(['item1', 'item2', 'item3', 'item4', 'item5']);
-            expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('item1'));
-            expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('item2'));
-            expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('item3'));
-            expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('item4'));
-            expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('item5'));
+        it('should display a list of items and handle newlines', () => {
+            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+            const items = ['1', '2', '3', '4', '5'];
+            displayList(items);
+            const expectedOutput =
+                '[1]  1                   [2]  2                   [3]  3                   [4]  4                   \n' +
+                '[5]  5                   ';
+            expect(logSpy).toHaveBeenCalledWith(expectedOutput);
             logSpy.mockRestore();
         });
     });
 
     describe('selectFromList', () => {
+        it('should return an empty array if no items are provided', async () => {
+            const result = await selectFromList([], 'Select items');
+            expect(result).toEqual([]);
+        });
+
+        it('should return an empty array if no choices are made with allowMultiple', async () => {
+            rlInterface.question.mockImplementationOnce((query, callback) => callback(''));
+            const items = ['one', 'two', 'three'];
+            const result = await selectFromList(items, 'Select items', { allowMultiple: true });
+            expect(result).toEqual([]);
+        });
+
+        it('should return an empty array if no choices are made without allowMultiple', async () => {
+            rlInterface.question.mockImplementationOnce((query, callback) => callback(''));
+            const items = ['one', 'two', 'three'];
+            const result = await selectFromList(items, 'Select items', { allowMultiple: false });
+            expect(result).toEqual([]);
+        });
+
+        it('should handle empty strings in choices', async () => {
+            rlInterface.question.mockImplementationOnce((query, callback) => callback('1, 2'));
+            const items = ['one', 'two', 'three'];
+            const result = await selectFromList(items, 'Select items');
+            expect(result).toEqual(['one', 'two']);
+        });
+
+        it('should throw an error for non-numeric selection', async () => {
+            rlInterface.question.mockImplementationOnce((query, callback) => callback('a'));
+            const items = ['one', 'two', 'three'];
+            await expect(selectFromList(items, 'Select an item')).rejects.toThrow("Invalid selection: 'a'. Please enter numbers from the list.");
+        });
+
+        it('should throw an error for multiple selections when not allowed', async () => {
+            rlInterface.question.mockImplementationOnce((query, callback) => callback('1,2'));
+            const items = ['one', 'two', 'three'];
+            await expect(selectFromList(items, 'Select an item', { allowMultiple: false })).rejects.toThrow('Multiple selections are not allowed for this prompt.');
+        });
+
         it('should return selected items for multiple choices', async () => {
             rlInterface.question.mockImplementationOnce((query, callback) => callback('1,3'));
             const items = ['one', 'two', 'three'];
