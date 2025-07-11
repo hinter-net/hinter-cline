@@ -93,18 +93,32 @@ destinationPath: ""
 This body text will be ignored, because sourcePath is not empty.
 ```
 
+### Example: Sending a Directory
+
+You can also send an entire directory.
+The directory structure will be preserved at the destination.
+
+```yaml
+---
+to: [ "peer-alias-1" ]
+except: []
+# sourcePath points to the directory we want to send.
+sourcePath: "./meme-folder"
+# The contents of my-album will be saved to peers/peer-alias-1/outgoing/meme-folder
+destinationPath: ""
+---
+```
+
 ### Key Fields Explained
 
 - `to`: A list of recipients.
 Can contain individual peer aliases (e.g., `"peer-1"`) and groups (e.g., `"group:friends"`).
 If this array is empty, the report will not be sent to anyone.
 - `except`: An array of peers or groups to exclude from the recipients.
-- `sourcePath`: (Optional) The path to the file to be sent, relative to the draft file.
+- `sourcePath`: (Optional) The path to the file or directory to be sent, relative to the draft file.
 If left empty, the body of the draft itself (with frontmatter removed) is sent.
-- `destinationPath`: (Optional)  The destination path for the file in the peer's `outgoing` directory.
-If left empty, its default depends on `sourcePath`:
-  - If `sourcePath` is also empty, `destinationPath` defaults to the relative path of the draft file.
-  - If `sourcePath` is set, `destinationPath` defaults to the same path.
+- `destinationPath`: (Optional) The destination path for the file or directory in the peer's `outgoing` directory.
+If left empty, it defaults to the name of the source file or directory.
 
 ### Important Rules
 

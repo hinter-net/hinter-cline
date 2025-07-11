@@ -63,6 +63,21 @@ async function* walk(dir) {
     }
 }
 
+async function removeEmptyDirectories(directory) {
+    const fileStats = await fs.readdir(directory);
+    await Promise.all(fileStats.map(async (file) => {
+        const fullPath = path.join(directory, file);
+        const stat = await fs.stat(fullPath);
+        if (stat.isDirectory()) {
+            await removeEmptyDirectories(fullPath);
+            const files = await fs.readdir(fullPath);
+            if (files.length === 0) {
+                await fs.rmdir(fullPath);
+            }
+        }
+    }));
+}
+
 function extractFrontmatterAndContent(text) {
     const match = text.match(/^---\r?\n([\s\S]+?)\r?\n---/);
     if (!match) {
@@ -88,15 +103,15 @@ async function syncReports(dataPath) {
     }
     const groups = await getGroups(dataPath);
 
-    const desiredState = new Map(peerAliases.map(alias => [alias, new Map()]));
+    const peerAliasToOutgoingFiles = new Map(peerAliases.map(alias => [alias, new Map()]));
 
-    for await (const filePath of walk(entriesPath)) {
-        if (path.extname(filePath) !== '.md') continue;
+    for await (const entryPath of walk(entriesPath)) {
+        if (path.extname(entryPath) !== '.md') continue;
 
-        const reportDraftContent = await fs.readFile(filePath, 'utf8');
-        const { frontmatter, body, error } = extractFrontmatterAndContent(reportDraftContent);
+        const entryContent = await fs.readFile(entryPath, 'utf8');
+        const { frontmatter, body, error } = extractFrontmatterAndContent(entryContent);
         if (error) {
-            throw new Error(`Error parsing YAML for report draft ${filePath}: ${error.message}`);
+            throw new Error(`Error parsing YAML for report draft ${entryPath}: ${error.message}`);
         }
         if (!frontmatter) {
             continue;
@@ -105,30 +120,12 @@ async function syncReports(dataPath) {
             !Array.isArray(frontmatter.to) ||
             !Array.isArray(frontmatter.except)
         ) {
-            throw new Error(`Report draft ${filePath} is missing required fields (to, except).`);
+            throw new Error(`Report draft ${entryPath} is missing required fields (to, except).`);
         }
 
         const { to, except } = frontmatter;
         const sourcePath = frontmatter.sourcePath || '';
-
-        let destinationPath = frontmatter.destinationPath;
-        if (!destinationPath) {
-            destinationPath = sourcePath || path.relative(entriesPath, filePath);
-        }
-
-        let source;
-        if (!sourcePath) {
-            source = { type: 'content', data: body };
-        } else {
-            const absoluteSourcePath = path.resolve(path.dirname(filePath), sourcePath);
-            // Check if source exists before adding to desired state
-            try {
-                await fs.access(absoluteSourcePath);
-                source = { type: 'file', path: absoluteSourcePath };
-            } catch (e) {
-                throw new Error(`Error reading source file ${absoluteSourcePath} for report draft ${filePath}`);
-            }
-        }
+        const destinationPath = frontmatter.destinationPath || '';
 
         const recipients = (() => {
             let expandedTo = new Set();
@@ -166,8 +163,35 @@ async function syncReports(dataPath) {
             return [...expandedTo].filter(p => !expandedExcept.has(p));
         })();
 
-        for (const peerAlias of recipients) {
-            desiredState.get(peerAlias).set(destinationPath, source);
+        if (!sourcePath) {
+            const destination = destinationPath || path.relative(entriesPath, entryPath);
+            for (const peerAlias of recipients) {
+                peerAliasToOutgoingFiles.get(peerAlias).set(destination, { type: 'content', data: body });
+            }
+        } else {
+            const absoluteSourcePath = path.resolve(path.dirname(entryPath), sourcePath);
+            let stats;
+            try {
+                stats = await fs.stat(absoluteSourcePath);
+            } catch (e) {
+                throw new Error(`Error accessing source path ${absoluteSourcePath} for report draft ${entryPath}`);
+            }
+
+            if (stats.isDirectory()) {
+                const destination = destinationPath || path.basename(absoluteSourcePath);
+                for await (const fileInDir of walk(absoluteSourcePath)) {
+                    const relativePath = path.relative(absoluteSourcePath, fileInDir);
+                    const finalDest = path.join(destination, relativePath);
+                    for (const peerAlias of recipients) {
+                        peerAliasToOutgoingFiles.get(peerAlias).set(finalDest, { type: 'file', path: fileInDir });
+                    }
+                }
+            } else {
+                const destination = destinationPath || path.basename(absoluteSourcePath);
+                for (const peerAlias of recipients) {
+                    peerAliasToOutgoingFiles.get(peerAlias).set(destination, { type: 'file', path: absoluteSourcePath });
+                }
+            }
         }
     }
 
@@ -177,20 +201,20 @@ async function syncReports(dataPath) {
         const peerOutgoingPath = path.join(getPeerPath(dataPath, peerAlias), 'outgoing');
         await fs.mkdir(peerOutgoingPath, { recursive: true });
 
-        const desiredFiles = desiredState.get(peerAlias);
-        const actualFiles = new Set();
+        const desiredPeerOutgoingFiles = peerAliasToOutgoingFiles.get(peerAlias);
+        const actualPeerOutgoingFiles = new Set();
         for await (const file of walk(peerOutgoingPath)) {
-            actualFiles.add(path.relative(peerOutgoingPath, file));
+            actualPeerOutgoingFiles.add(path.relative(peerOutgoingPath, file));
         }
 
-        for (const file of actualFiles) {
-            if (!desiredFiles.has(file)) {
+        for (const file of actualPeerOutgoingFiles) {
+            if (!desiredPeerOutgoingFiles.has(file)) {
                 await fs.unlink(path.join(peerOutgoingPath, file));
                 removalCount++;
             }
         }
 
-        for (const [file, source] of desiredFiles) {
+        for (const [file, source] of desiredPeerOutgoingFiles) {
             const destPath = path.join(peerOutgoingPath, file);
             await fs.mkdir(path.dirname(destPath), { recursive: true });
             if (source.type === 'file') {
@@ -200,6 +224,7 @@ async function syncReports(dataPath) {
             }
             postCount++;
         }
+        await removeEmptyDirectories(peerOutgoingPath);
     }
 
     console.log(`Finished. Synced ${postCount} reports and removed ${removalCount} obsolete reports.`);
