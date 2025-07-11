@@ -4,7 +4,12 @@ const {
   getPeerConfig,
   updatePeerConfig,
 } = require("../src/peer");
-const { question, isValidSlug, selectFromList } = require("../src/utils");
+const {
+  rl,
+  question,
+  isValidSlug,
+  selectFromList,
+} = require("../src/utils");
 
 jest.mock("../src/peer", () => ({
   getPeerAliases: jest.fn(),
@@ -12,11 +17,14 @@ jest.mock("../src/peer", () => ({
   updatePeerConfig: jest.fn(),
 }));
 
-jest.mock("../src/utils", () => ({
-  question: jest.fn(),
-  isValidSlug: jest.fn(),
-  selectFromList: jest.fn(),
-}));
+jest.mock("../src/utils", () => {
+  const original = jest.requireActual("../src/utils");
+  return {
+    ...original,
+    question: jest.fn(),
+    selectFromList: jest.fn(),
+  };
+});
 
 describe("group", () => {
   const DATA_PATH = "/fake/path";
@@ -26,10 +34,14 @@ describe("group", () => {
     jest.clearAllMocks();
   });
 
+  afterAll(() => {
+    rl.close();
+  });
+
   describe("getGroups", () => {
     it("should return a map of groups and their members", async () => {
       getPeerAliases.mockResolvedValue(["peer1", "peer2", "peer3"]);
-      getPeerConfig.mockImplementation((dataPath, alias) => {
+      getPeerConfig.mockImplementation((_, alias) => {
         const configs = {
           peer1: { "hinter-cline": { groups: ["group1"] } },
           peer2: { "hinter-cline": { groups: ["group1", "group2"] } },
@@ -52,7 +64,6 @@ describe("group", () => {
   describe("addGroup", () => {
     it("should add a new group", async () => {
       question.mockResolvedValue("new-group");
-      isValidSlug.mockReturnValue(true);
       getPeerAliases.mockResolvedValue(["peer1"]);
       getPeerConfig.mockResolvedValue({});
       selectFromList.mockResolvedValue(["peer1"]);
@@ -66,14 +77,12 @@ describe("group", () => {
 
     it("should not add a group with an invalid alias", async () => {
       question.mockResolvedValue("invalid group");
-      isValidSlug.mockReturnValue(false);
       await group.addGroup(DATA_PATH);
       expect(updatePeerConfig).not.toHaveBeenCalled();
     });
 
     it("should not add a group if alias already exists", async () => {
       question.mockResolvedValue("existing-group");
-      isValidSlug.mockReturnValue(true);
       getPeerAliases.mockResolvedValue(["peer1"]);
       getPeerConfig.mockResolvedValue({
         "hinter-cline": { groups: ["existing-group"] },
@@ -91,7 +100,6 @@ describe("group", () => {
 
     it("should not add a group if no peers exist", async () => {
       question.mockResolvedValue("new-group");
-      isValidSlug.mockReturnValue(true);
       getPeerAliases.mockResolvedValue([]);
 
       await group.addGroup(DATA_PATH);
@@ -100,7 +108,6 @@ describe("group", () => {
 
     it("should not add a group if no peers are selected", async () => {
       question.mockResolvedValue("new-group");
-      isValidSlug.mockReturnValue(true);
       getPeerAliases.mockResolvedValue(["peer1"]);
       getPeerConfig.mockResolvedValue({});
       selectFromList.mockResolvedValue([]);
@@ -111,7 +118,6 @@ describe("group", () => {
 
     it("should handle errors when selecting peers", async () => {
       question.mockResolvedValue("new-group");
-      isValidSlug.mockReturnValue(true);
       getPeerAliases.mockResolvedValue(["peer1"]);
       const errorMessage = "An error occurred";
       selectFromList.mockRejectedValue(new Error(errorMessage));
@@ -165,7 +171,7 @@ describe("group", () => {
 
     it("should add a peer to a group", async () => {
       getPeerAliases.mockResolvedValue(["peer1", "peer2"]);
-      getPeerConfig.mockImplementation(async (dataPath, alias) => {
+      getPeerConfig.mockImplementation(async (_, alias) => {
         if (alias === "peer1")
           return { "hinter-cline": { groups: ["group1"] } };
         if (alias === "peer2") return { "hinter-cline": { groups: [] } };
@@ -219,7 +225,7 @@ describe("group", () => {
 
     it("should handle errors when selecting peers to add", async () => {
       getPeerAliases.mockResolvedValue(["peer1", "peer2"]);
-      getPeerConfig.mockImplementation(async (dataPath, alias) => {
+      getPeerConfig.mockImplementation(async (_, alias) => {
         if (alias === "peer1")
           return { "hinter-cline": { groups: ["group1"] } };
         return {};
