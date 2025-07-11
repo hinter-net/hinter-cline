@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const yaml = require('js-yaml');
-const { question, slugify, selectFromList } = require('./utils');
+const { question, slugify, selectFromList, extractFrontmatterAndContent } = require('./utils');
 const { getPeerAliases, getPeerPath } = require('./peer');
 const { getGroups } = require('./group');
 
@@ -78,20 +78,6 @@ async function removeEmptyDirectories(directory) {
     }));
 }
 
-function extractFrontmatterAndContent(text) {
-    const match = text.match(/^---\r?\n([\s\S]+?)\r?\n---/);
-    if (!match) {
-        return { frontmatter: null, body: text, error: null };
-    }
-
-    try {
-        const frontmatter = yaml.load(match[1]);
-        const body = text.slice(match[0].length).trim();
-        return { frontmatter, body, error: null };
-    } catch (e) {
-        return { frontmatter: null, body: text, error: e };
-    }
-}
 
 async function syncReports(dataPath) {
     const entriesPath = getEntriesPath(dataPath);

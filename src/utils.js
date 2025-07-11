@@ -1,4 +1,5 @@
 const readline = require('readline');
+const yaml = require('js-yaml');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -84,6 +85,21 @@ async function selectFromList(items, promptMessage, { allowMultiple = true } = {
     return selectedItems;
 }
 
+function extractFrontmatterAndContent(text) {
+    const match = text.match(/^---\r?\n([\s\S]+?)\r?\n---/);
+    if (!match) {
+        return { frontmatter: null, body: text, error: null };
+    }
+
+    try {
+        const frontmatter = yaml.load(match[1]);
+        const body = text.slice(match[0].length).trim();
+        return { frontmatter, body, error: null };
+    } catch (e) {
+        return { frontmatter: null, body: text, error: e };
+    }
+}
+
 module.exports = {
     rl,
     question,
@@ -91,5 +107,6 @@ module.exports = {
     isValidPublicKey,
     slugify,
     displayList,
-    selectFromList
+    selectFromList,
+    extractFrontmatterAndContent
 };

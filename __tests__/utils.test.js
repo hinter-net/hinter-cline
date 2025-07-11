@@ -1,4 +1,5 @@
-const { rl, isValidSlug, isValidPublicKey, slugify, displayList, selectFromList, question } = require('../src/utils');
+const { rl, isValidSlug, isValidPublicKey, slugify, displayList, selectFromList, question, extractFrontmatterAndContent } = require('../src/utils');
+const yaml = require('js-yaml');
 
 jest.mock('readline', () => ({
     createInterface: jest.fn().mockReturnValue({
@@ -9,6 +10,10 @@ jest.mock('readline', () => ({
 
 const readline = require('readline');
 const rlInterface = readline.createInterface();
+
+jest.mock('js-yaml', () => ({
+    load: jest.fn(),
+}));
 
 describe('utils', () => {
     afterEach(() => {
@@ -137,6 +142,33 @@ describe('utils', () => {
             rlInterface.question.mockImplementationOnce((query, callback) => callback('4'));
             const items = ['one', 'two', 'three'];
             await expect(selectFromList(items, 'Select an item')).rejects.toThrow("Invalid selection: '4'. Please enter numbers from the list.");
+        });
+    });
+
+    describe('extractFrontmatterAndContent', () => {
+        it('should extract frontmatter and content from text', () => {
+            const text = '---\nto: ["peer1"]\nexcept: []\n---\n\n# Title';
+            yaml.load.mockReturnValue({ to: ['peer1'], except: [] });
+            const { frontmatter, body } = extractFrontmatterAndContent(text);
+            expect(frontmatter).toEqual({ to: ['peer1'], except: [] });
+            expect(body).toBe('# Title');
+        });
+
+        it('should return null frontmatter if not present', () => {
+            const text = '# Title';
+            const { frontmatter, body } = extractFrontmatterAndContent(text);
+            expect(frontmatter).toBeNull();
+            expect(body).toBe('# Title');
+        });
+
+        it('should return an error for invalid YAML', () => {
+            const text = '---\ninvalid-yaml\n---\n\n# Title';
+            const error = new Error('YAML parsing error');
+            yaml.load.mockImplementation(() => {
+                throw error;
+            });
+            const result = extractFrontmatterAndContent(text);
+            expect(result.error).toBe(error);
         });
     });
 });
