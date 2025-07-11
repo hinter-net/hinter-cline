@@ -20,12 +20,13 @@ function isValidPublicKey(key) {
 }
 
 function slugify(text) {
-    return text.toString().toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w-]+/g, '')
-        .replace(/--+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '');
+    return text
+        .replaceAll(/[^\d\sA-Za-z]+/g, ' ')
+        .replaceAll(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+        .join('-')
+        .toLowerCase();
 }
 
 function displayList(items) {
