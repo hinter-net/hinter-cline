@@ -83,4 +83,12 @@ describe('cli', () => {
         expect(logSpy).toHaveBeenCalledWith('Invalid option.');
         logSpy.mockRestore();
     });
+
+    it('should propagate errors from called functions', async () => {
+        const error = new Error('Test error');
+        createDraft.mockRejectedValue(error);
+        question.mockResolvedValueOnce('1');
+
+        await expect(cli()).rejects.toThrow(error);
+    });
 });

@@ -52,7 +52,7 @@ describe('group', () => {
             getPeerAliases.mockResolvedValue(['peer1']);
             getPeerConfig.mockResolvedValue({});
             selectFromList.mockResolvedValue(['peer1']);
-            
+
             await group.addGroup(DATA_PATH);
 
             expect(updatePeerConfig).toHaveBeenCalledWith(DATA_PATH, 'peer1', {
@@ -72,10 +72,10 @@ describe('group', () => {
             isValidSlug.mockReturnValue(true);
             getPeerAliases.mockResolvedValue(['peer1']);
             getPeerConfig.mockResolvedValue({ 'hinter-cline': { groups: ['existing-group'] } });
-            
-            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
             await group.addGroup(DATA_PATH);
-            
+
             expect(logSpy).toHaveBeenCalledWith('A group with this alias already exists.');
             expect(updatePeerConfig).not.toHaveBeenCalled();
             logSpy.mockRestore();
@@ -85,7 +85,7 @@ describe('group', () => {
             question.mockResolvedValue('new-group');
             isValidSlug.mockReturnValue(true);
             getPeerAliases.mockResolvedValue([]);
-            
+
             await group.addGroup(DATA_PATH);
             expect(updatePeerConfig).not.toHaveBeenCalled();
         });
@@ -96,16 +96,31 @@ describe('group', () => {
             getPeerAliases.mockResolvedValue(['peer1']);
             getPeerConfig.mockResolvedValue({});
             selectFromList.mockResolvedValue([]);
-            
+
             await group.addGroup(DATA_PATH);
             expect(updatePeerConfig).not.toHaveBeenCalled();
+        });
+
+        it('should handle errors when selecting peers', async () => {
+            question.mockResolvedValue('new-group');
+            isValidSlug.mockReturnValue(true);
+            getPeerAliases.mockResolvedValue(['peer1']);
+            const errorMessage = 'An error occurred';
+            selectFromList.mockRejectedValue(new Error(errorMessage));
+
+            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+            await group.addGroup(DATA_PATH);
+
+            expect(logSpy).toHaveBeenCalledWith(errorMessage);
+            expect(updatePeerConfig).not.toHaveBeenCalled();
+            logSpy.mockRestore();
         });
     });
 
     describe('manageGroup', () => {
         it('should do nothing if no groups exist', async () => {
             getPeerAliases.mockResolvedValue([]);
-            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
             await group.manageGroup(DATA_PATH);
             expect(logSpy).toHaveBeenCalledWith('No groups to manage.');
             logSpy.mockRestore();
@@ -115,8 +130,8 @@ describe('group', () => {
             getPeerAliases.mockResolvedValue(['peer1']);
             getPeerConfig.mockResolvedValue({ 'hinter-cline': { groups: ['group1'] } });
             selectFromList.mockResolvedValue([]);
-            
-            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
             await group.manageGroup(DATA_PATH);
             expect(logSpy).toHaveBeenCalledWith('No group selected.');
             logSpy.mockRestore();
@@ -128,9 +143,9 @@ describe('group', () => {
             selectFromList
                 .mockResolvedValueOnce(['group1'])
                 .mockResolvedValueOnce(['peer1']);
-            
+
             await group.manageGroup(DATA_PATH);
-            
+
             expect(updatePeerConfig).toHaveBeenCalledWith(DATA_PATH, 'peer1', {
                 'hinter-cline': { groups: [] },
             });
@@ -147,12 +162,62 @@ describe('group', () => {
                 .mockResolvedValueOnce(['group1'])
                 .mockResolvedValueOnce([])
                 .mockResolvedValueOnce(['peer2']);
-            
+
             await group.manageGroup(DATA_PATH);
-            
+
             expect(updatePeerConfig).toHaveBeenCalledWith(DATA_PATH, 'peer2', {
                 'hinter-cline': { groups: ['group1'] },
             });
+        });
+
+        it('should handle errors when selecting a group to manage', async () => {
+            getPeerAliases.mockResolvedValue(['peer1']);
+            getPeerConfig.mockResolvedValue({ 'hinter-cline': { groups: ['group1'] } });
+            const errorMessage = 'An error occurred';
+            selectFromList.mockRejectedValue(new Error(errorMessage));
+
+            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+            await group.manageGroup(DATA_PATH);
+
+            expect(logSpy).toHaveBeenCalledWith(errorMessage);
+            expect(updatePeerConfig).not.toHaveBeenCalled();
+            logSpy.mockRestore();
+        });
+
+        it('should handle errors when selecting peers to remove', async () => {
+            getPeerAliases.mockResolvedValue(['peer1']);
+            getPeerConfig.mockResolvedValue({ 'hinter-cline': { groups: ['group1'] } });
+            const errorMessage = 'An error occurred';
+            selectFromList
+                .mockResolvedValueOnce(['group1'])
+                .mockRejectedValue(new Error(errorMessage));
+
+            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+            await group.manageGroup(DATA_PATH);
+
+            expect(logSpy).toHaveBeenCalledWith(errorMessage);
+            expect(updatePeerConfig).not.toHaveBeenCalled();
+            logSpy.mockRestore();
+        });
+
+        it('should handle errors when selecting peers to add', async () => {
+            getPeerAliases.mockResolvedValue(['peer1', 'peer2']);
+            getPeerConfig.mockImplementation(async (dataPath, alias) => {
+                if (alias === 'peer1') return { 'hinter-cline': { groups: ['group1'] } };
+                return {};
+            });
+            const errorMessage = 'An error occurred';
+            selectFromList
+                .mockResolvedValueOnce(['group1'])
+                .mockResolvedValueOnce([])
+                .mockRejectedValue(new Error(errorMessage));
+
+            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+            await group.manageGroup(DATA_PATH);
+
+            expect(logSpy).toHaveBeenCalledWith(errorMessage);
+            expect(updatePeerConfig).not.toHaveBeenCalled();
+            logSpy.mockRestore();
         });
     });
 });

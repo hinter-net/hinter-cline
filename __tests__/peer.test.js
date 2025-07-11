@@ -69,6 +69,7 @@ describe('peer', () => {
             expect(fs.readdir).toHaveBeenCalledWith(expectedPath, { withFileTypes: true });
             expect(aliases).toEqual(['peer1', 'peer2']);
         });
+
     });
 
     describe('addPeer', () => {
@@ -168,6 +169,15 @@ describe('peer', () => {
             expect(fs.rename).not.toHaveBeenCalled();
         });
 
+        it('should rename a peer', async () => {
+            fs.readdir.mockResolvedValue([{ name: 'peer1', isDirectory: () => true }]);
+            selectFromList.mockResolvedValue(['peer1']);
+            question.mockResolvedValueOnce('1').mockResolvedValueOnce('new-alias');
+            isValidSlug.mockReturnValue(true);
+            await managePeer(DATA_PATH);
+            expect(fs.rename).toHaveBeenCalledWith(getPeerPath(DATA_PATH, 'peer1'), getPeerPath(DATA_PATH, 'new-alias'));
+        });
+
         it('should not update a peer with an invalid public key', async () => {
             fs.readdir.mockResolvedValue([{ name: 'peer1', isDirectory: () => true }]);
             selectFromList.mockResolvedValue(['peer1']);
@@ -188,12 +198,34 @@ describe('peer', () => {
             expect(fs.writeFile).not.toHaveBeenCalled();
         });
 
+        it('should update a peer public key', async () => {
+            fs.readdir.mockResolvedValue([{ name: 'peer1', isDirectory: () => true }]);
+            selectFromList.mockResolvedValue(['peer1']);
+            const newPublicKey = 'b'.repeat(64);
+            question.mockResolvedValueOnce('2').mockResolvedValueOnce(newPublicKey);
+            isValidPublicKey.mockReturnValue(true);
+            fs.readFile.mockResolvedValue(JSON.stringify({ publicKey: 'a'.repeat(64) }));
+            await managePeer(DATA_PATH);
+            expect(fs.writeFile).toHaveBeenCalledWith(
+                path.join(getPeerPath(DATA_PATH, 'peer1'), 'hinter.config.json'),
+                JSON.stringify({ publicKey: newPublicKey }, null, 2)
+            );
+        });
+
         it('should cancel deletion of a peer', async () => {
             fs.readdir.mockResolvedValue([{ name: 'peer1', isDirectory: () => true }]);
             selectFromList.mockResolvedValue(['peer1']);
             question.mockResolvedValueOnce('3').mockResolvedValueOnce('n');
             await managePeer(DATA_PATH);
             expect(fs.rm).not.toHaveBeenCalled();
+        });
+
+        it('should delete a peer', async () => {
+            fs.readdir.mockResolvedValue([{ name: 'peer1', isDirectory: () => true }]);
+            selectFromList.mockResolvedValue(['peer1']);
+            question.mockResolvedValueOnce('3').mockResolvedValueOnce('y');
+            await managePeer(DATA_PATH);
+            expect(fs.rm).toHaveBeenCalledWith(getPeerPath(DATA_PATH, 'peer1'), { recursive: true, force: true });
         });
 
         it('should handle invalid choice in managePeer', async () => {

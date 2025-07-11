@@ -94,6 +94,16 @@ describe('utils', () => {
             expect(logSpy).toHaveBeenCalledWith(expectedOutput);
             logSpy.mockRestore();
         });
+
+        it('should display a list of items with a length that is a multiple of 4', () => {
+            const logSpy = jest.spyOn(console, 'log').mockImplementation(() => { });
+            const items = ['1', '2', '3', '4'];
+            displayList(items);
+            const expectedOutput =
+                '[1]  1                   [2]  2                   [3]  3                   [4]  4                   \n';
+            expect(logSpy).toHaveBeenCalledWith(expectedOutput);
+            logSpy.mockRestore();
+        });
     });
 
     describe('selectFromList', () => {
@@ -210,14 +220,25 @@ describe('utils', () => {
 
     describe('removeEmptyDirectories', () => {
         it('should remove empty directories recursively', async () => {
-            fs.readdir.mockImplementation(async (p) => {
-                if (p === 'test_dir') return ['dir1', 'dir2'];
-                if (p === 'test_dir/dir1') return ['file1.txt'];
-                if (p === 'test_dir/dir2') return [];
-                return [];
+            const dirStructure = {
+                'test_dir': ['dir1', 'dir2', 'file2.txt'],
+                'test_dir/dir1': ['file1.txt'],
+                'test_dir/dir2': ['dir3'],
+                'test_dir/dir2/dir3': [],
+            };
+
+            fs.readdir.mockImplementation(async (p) => dirStructure[p] || []);
+            fs.stat.mockImplementation(async (p) => ({ isDirectory: () => !p.includes('file') }));
+            fs.rmdir.mockImplementation(async (p) => {
+                const parent = path.dirname(p);
+                const child = path.basename(p);
+                dirStructure[parent] = dirStructure[parent].filter(f => f !== child);
             });
-            fs.stat.mockResolvedValue({ isDirectory: () => true });
+
             await removeEmptyDirectories('test_dir');
+
+            expect(fs.rmdir).toHaveBeenCalledTimes(2);
+            expect(fs.rmdir).toHaveBeenCalledWith('test_dir/dir2/dir3');
             expect(fs.rmdir).toHaveBeenCalledWith('test_dir/dir2');
             expect(fs.rmdir).not.toHaveBeenCalledWith('test_dir/dir1');
         });
