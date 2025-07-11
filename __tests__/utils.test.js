@@ -1,3 +1,6 @@
+const fs = require("fs").promises;
+const path = require("path");
+const readline = require("readline");
 const {
   rl,
   isValidSlug,
@@ -10,9 +13,8 @@ const {
   walk,
   removeEmptyDirectories,
 } = require("../src/utils");
-const yaml = require("js-yaml");
-const fs = require("fs").promises;
-const path = require("path");
+
+const rlInterface = readline.createInterface();
 
 jest.mock("fs", () => ({
   promises: {
@@ -28,13 +30,6 @@ jest.mock("readline", () => ({
     question: jest.fn(),
     close: jest.fn(),
   }),
-}));
-
-const readline = require("readline");
-const rlInterface = readline.createInterface();
-
-jest.mock("js-yaml", () => ({
-  load: jest.fn(),
 }));
 
 describe("utils", () => {
@@ -126,7 +121,7 @@ describe("utils", () => {
     });
 
     it("should return an empty array if no choices are made with allowMultiple", async () => {
-      rlInterface.question.mockImplementationOnce((query, callback) =>
+      rlInterface.question.mockImplementationOnce((_, callback) =>
         callback(""),
       );
       const items = ["one", "two", "three"];
@@ -137,7 +132,7 @@ describe("utils", () => {
     });
 
     it("should return an empty array if no choices are made without allowMultiple", async () => {
-      rlInterface.question.mockImplementationOnce((query, callback) =>
+      rlInterface.question.mockImplementationOnce((_, callback) =>
         callback(""),
       );
       const items = ["one", "two", "three"];
@@ -148,8 +143,8 @@ describe("utils", () => {
     });
 
     it("should handle empty strings in choices", async () => {
-      rlInterface.question.mockImplementationOnce((query, callback) =>
-        callback("1, 2"),
+      rlInterface.question.mockImplementationOnce((_, callback) =>
+        callback("1, 2,,"),
       );
       const items = ["one", "two", "three"];
       const result = await selectFromList(items, "Select items");
@@ -157,7 +152,7 @@ describe("utils", () => {
     });
 
     it("should throw an error for non-numeric selection", async () => {
-      rlInterface.question.mockImplementationOnce((query, callback) =>
+      rlInterface.question.mockImplementationOnce((_, callback) =>
         callback("a"),
       );
       const items = ["one", "two", "three"];
@@ -167,7 +162,7 @@ describe("utils", () => {
     });
 
     it("should throw an error for multiple selections when not allowed", async () => {
-      rlInterface.question.mockImplementationOnce((query, callback) =>
+      rlInterface.question.mockImplementationOnce((_, callback) =>
         callback("1,2"),
       );
       const items = ["one", "two", "three"];
@@ -177,7 +172,7 @@ describe("utils", () => {
     });
 
     it("should return selected items for multiple choices", async () => {
-      rlInterface.question.mockImplementationOnce((query, callback) =>
+      rlInterface.question.mockImplementationOnce((_, callback) =>
         callback("1,3"),
       );
       const items = ["one", "two", "three"];
@@ -210,7 +205,6 @@ describe("utils", () => {
   describe("extractFrontmatterAndContent", () => {
     it("should extract frontmatter and content from text", () => {
       const text = '---\nto: ["peer1"]\nexcept: []\n---\n\n# Title';
-      yaml.load.mockReturnValue({ to: ["peer1"], except: [] });
       const { frontmatter, body } = extractFrontmatterAndContent(text);
       expect(frontmatter).toEqual({ to: ["peer1"], except: [] });
       expect(body).toBe("# Title");
@@ -225,12 +219,8 @@ describe("utils", () => {
 
     it("should return an error for invalid YAML", () => {
       const text = "---\ninvalid-yaml\n---\n\n# Title";
-      const error = new Error("YAML parsing error");
-      yaml.load.mockImplementation(() => {
-        throw error;
-      });
       const result = extractFrontmatterAndContent(text);
-      expect(result.error).toBe(error);
+      expect(result.error).toBeInstanceOf(Error);
     });
   });
 
