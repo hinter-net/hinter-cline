@@ -1,7 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
-const yaml = require('js-yaml');
-const { question, slugify, selectFromList, extractFrontmatterAndContent } = require('./utils');
+const { question, slugify, selectFromList, extractFrontmatterAndContent, walk, removeEmptyDirectories } = require('./utils');
 const { getPeerAliases, getPeerPath } = require('./peer');
 const { getGroups } = require('./group');
 
@@ -55,28 +54,6 @@ destinationPath: ""
     console.log(`Draft created at: ${filePath}`);
 }
 
-async function* walk(dir) {
-    for await (const d of await fs.opendir(dir)) {
-        const entry = path.join(dir, d.name);
-        if (d.isDirectory()) yield* walk(entry);
-        else if (d.isFile()) yield entry;
-    }
-}
-
-async function removeEmptyDirectories(directory) {
-    const fileStats = await fs.readdir(directory);
-    await Promise.all(fileStats.map(async (file) => {
-        const fullPath = path.join(directory, file);
-        const stat = await fs.stat(fullPath);
-        if (stat.isDirectory()) {
-            await removeEmptyDirectories(fullPath);
-            const files = await fs.readdir(fullPath);
-            if (files.length === 0) {
-                await fs.rmdir(fullPath);
-            }
-        }
-    }));
-}
 
 
 async function syncReports(dataPath) {

@@ -1,5 +1,16 @@
-const { rl, isValidSlug, isValidPublicKey, slugify, displayList, selectFromList, question, extractFrontmatterAndContent } = require('../src/utils');
+const { rl, isValidSlug, isValidPublicKey, slugify, displayList, selectFromList, question, extractFrontmatterAndContent, walk, removeEmptyDirectories } = require('../src/utils');
 const yaml = require('js-yaml');
+const fs = require('fs').promises;
+const path = require('path');
+
+jest.mock('fs', () => ({
+    promises: {
+        opendir: jest.fn(),
+        readdir: jest.fn(),
+        stat: jest.fn(),
+        rmdir: jest.fn(),
+    },
+}));
 
 jest.mock('readline', () => ({
     createInterface: jest.fn().mockReturnValue({
@@ -169,6 +180,46 @@ describe('utils', () => {
             });
             const result = extractFrontmatterAndContent(text);
             expect(result.error).toBe(error);
+        });
+    });
+
+    describe('walk', () => {
+        it('should recursively walk a directory', async () => {
+            const structure = [
+                { name: 'file1.txt', isDirectory: () => false, isFile: () => true },
+                { name: 'dir1', isDirectory: () => true, isFile: () => false },
+            ];
+            const structure2 = [
+                { name: 'file2.txt', isDirectory: () => false, isFile: () => true },
+            ];
+            fs.opendir.mockImplementation(async function* (p) {
+                if (p === 'test_dir') {
+                    for (const f of structure) yield f;
+                } else if (p === 'test_dir/dir1') {
+                    for (const f of structure2) yield f;
+                }
+            });
+
+            const files = [];
+            for await (const file of walk('test_dir')) {
+                files.push(file);
+            }
+            expect(files).toEqual(['test_dir/file1.txt', 'test_dir/dir1/file2.txt']);
+        });
+    });
+
+    describe('removeEmptyDirectories', () => {
+        it('should remove empty directories recursively', async () => {
+            fs.readdir.mockImplementation(async (p) => {
+                if (p === 'test_dir') return ['dir1', 'dir2'];
+                if (p === 'test_dir/dir1') return ['file1.txt'];
+                if (p === 'test_dir/dir2') return [];
+                return [];
+            });
+            fs.stat.mockResolvedValue({ isDirectory: () => true });
+            await removeEmptyDirectories('test_dir');
+            expect(fs.rmdir).toHaveBeenCalledWith('test_dir/dir2');
+            expect(fs.rmdir).not.toHaveBeenCalledWith('test_dir/dir1');
         });
     });
 });

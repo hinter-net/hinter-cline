@@ -1,3 +1,5 @@
+const fs = require('fs').promises;
+const path = require('path');
 const readline = require('readline');
 const yaml = require('js-yaml');
 
@@ -100,6 +102,29 @@ function extractFrontmatterAndContent(text) {
     }
 }
 
+async function* walk(dir) {
+    for await (const d of await fs.opendir(dir)) {
+        const entry = path.join(dir, d.name);
+        if (d.isDirectory()) yield* walk(entry);
+        else if (d.isFile()) yield entry;
+    }
+}
+
+async function removeEmptyDirectories(directory) {
+    const fileStats = await fs.readdir(directory);
+    await Promise.all(fileStats.map(async (file) => {
+        const fullPath = path.join(directory, file);
+        const stat = await fs.stat(fullPath);
+        if (stat.isDirectory()) {
+            await removeEmptyDirectories(fullPath);
+            const files = await fs.readdir(fullPath);
+            if (files.length === 0) {
+                await fs.rmdir(fullPath);
+            }
+        }
+    }));
+}
+
 module.exports = {
     rl,
     question,
@@ -108,5 +133,7 @@ module.exports = {
     slugify,
     displayList,
     selectFromList,
-    extractFrontmatterAndContent
+    extractFrontmatterAndContent,
+    walk,
+    removeEmptyDirectories
 };
