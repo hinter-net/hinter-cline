@@ -122,12 +122,7 @@ async function postReports(dataPath) {
             } else {
                 const absoluteSourcePath = path.resolve(path.dirname(filePath), sourcePath);
                 try {
-                    const sourceContentBuffer = await fs.readFile(absoluteSourcePath);
-                    if (path.extname(absoluteSourcePath) === '.md') {
-                        finalContent = extractFrontmatterAndContent(sourceContentBuffer.toString('utf8')).content;
-                    } else {
-                        finalContent = sourceContentBuffer;
-                    }
+                    finalContent = await fs.readFile(absoluteSourcePath);
                 } catch (e) {
                     throw new Error(`Error reading source file ${absoluteSourcePath} for report draft ${filePath}`);
                 }

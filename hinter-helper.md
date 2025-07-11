@@ -115,4 +115,4 @@ If left empty, its default depends on `sourcePath`:
 - **Additive Posting:** The posting process is additive.
 It only copies files to peers' `outgoing` directories and will overwrite existing files if they have the same name and path.
 It does not delete files that were posted previously, even if a peer is later removed from a report's recipient list.
-- **YAML Stripping:** If the file being sent is a markdown file (either the draft itself or an external `.md` file), its YAML frontmatter is automatically removed before sending.
+- **YAML Stripping:** When the content of the draft file itself is being sent (i.e., `sourcePath` is empty), its YAML frontmatter is automatically removed. If an external Markdown file is specified in `sourcePath`, it is sent as-is, with its frontmatter intact.
