@@ -16,7 +16,8 @@ You will be presented with a menu of options.
 
 1.  **Create a report draft:** Interactively helps you create a new report draft.
 It prompts for a title and lets you select recipients from a list of known peers and groups.
-2.  **Post reports:** Scans the `entries/` directory for all report drafts and posts them to the appropriate peers based on the rules in their frontmatter.
+2.  **Sync reports:** Scans the `entries/` directory for all report drafts and synchronizes them with the appropriate peers.
+This ensures that each peer's `outgoing` directory perfectly reflects the reports they are meant to receive, adding new ones and removing any that are no longer targeted at them.
 3.  **Add a peer:** Guides you through adding a new peer by asking for a unique alias and their 64-character public key.
 4.  **Manage a peer:** Lets you select a peer to update their alias or public key, or to delete them entirely.
 5.  **Add a group:** Guides you through creating a new group and adding existing peers to it.
@@ -107,12 +108,13 @@ If left empty, its default depends on `sourcePath`:
 
 ### Important Rules
 
-- **Validation:** The `postReports` command is strict and will stop if it encounters any of the following issues in a draft:
+- **Validation:** The `syncReports` command is strict and will stop immediately if it encounters any of the following issues in a draft:
   - The YAML frontmatter is malformed.
   - The `to` or `except` fields are missing.
   - A peer or group listed in `to` or `except` does not exist.
   - The file specified in `sourcePath` cannot be found.
-- **Additive Posting:** The posting process is additive.
-It only copies files to peers' `outgoing` directories and will overwrite existing files if they have the same name and path.
-It does not delete files that were posted previously, even if a peer is later removed from a report's recipient list.
+- **Synchronization:** The sync process is not additive.
+It ensures that a peer's `outgoing` directory is an exact mirror of the reports they should receive.
+  - **Adds/Updates:** New or changed reports are written to the `outgoing` directory.
+  - **Deletes:** Reports that were previously sent but are no longer targeted at a peer (e.g., the draft was deleted or the peer was removed from the `to` list) will be deleted from their `outgoing` directory.
 - **YAML Stripping:** When the content of the draft file itself is being sent (i.e., `sourcePath` is empty), its YAML frontmatter is automatically removed. If an external Markdown file is specified in `sourcePath`, it is sent as-is, with its frontmatter intact.

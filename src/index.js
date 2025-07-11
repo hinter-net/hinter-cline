@@ -5,7 +5,7 @@ const path = require('path');
 const { rl, question } = require('./utils');
 const { addPeer, managePeer } = require('./peer');
 const { addGroup, manageGroup } = require('./group');
-const { createDraft, postReports } = require('./report');
+const { createDraft, syncReports } = require('./report');
 
 // --- Path and Config ---
 
@@ -19,7 +19,7 @@ async function main() {
 Hinter Helper
 ------------------------------
 1. Create a report draft
-2. Post reports
+2. Sync reports
 3. Add a peer
 4. Manage a peer
 5. Add a group
@@ -30,7 +30,7 @@ Hinter Helper
 
         switch (choice.trim()) {
             case '1': await createDraft(HINTER_CORE_DATA_PATH); break;
-            case '2': await postReports(HINTER_CORE_DATA_PATH); break;
+            case '2': await syncReports(HINTER_CORE_DATA_PATH); break;
             case '3': await addPeer(HINTER_CORE_DATA_PATH); break;
             case '4': await managePeer(HINTER_CORE_DATA_PATH); break;
             case '5': await addGroup(HINTER_CORE_DATA_PATH); break;

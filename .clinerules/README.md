@@ -23,7 +23,7 @@ If the user asks for one of these actions, inform them that they should use `hin
 `hinter-helper` is responsible for:
 *   Adding, editing, or removing peers.
 *   Creating report drafts.
-*   Posting reports to peers.
+*   Syncing reports with peers.
 
 ## 4. Your Role & Workflow
 1.  **Listen to the User**: Understand the user's specific, ad-hoc request.
