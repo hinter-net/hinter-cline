@@ -103,6 +103,9 @@ function extractFrontmatterAndContent(text) {
 
   try {
     const frontmatter = yaml.load(match[1]);
+    if (typeof frontmatter !== "object" || frontmatter === null) {
+      throw new Error("Invalid frontmatter");
+    }
     const body = text.slice(match[0].length).trim();
     return { frontmatter, body, error: null };
   } catch (e) {
