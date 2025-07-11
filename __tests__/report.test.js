@@ -2,7 +2,7 @@ const fs = require("fs").promises;
 const path = require("path");
 const yaml = require("js-yaml");
 const { createDraft, syncReports } = require("../src/report");
-const { question, slugify, selectFromList } = require("../src/utils");
+const { rl, question, slugify, selectFromList } = require("../src/utils");
 const { getPeerAliases, getPeerPath } = require("../src/peer");
 const { getGroups } = require("../src/group");
 
@@ -20,18 +20,17 @@ jest.mock("fs", () => ({
   },
 }));
 
-jest.mock("js-yaml", () => ({
-  load: jest.fn(),
-}));
-
-jest.mock("../src/utils", () => ({
-  question: jest.fn(),
-  slugify: jest.fn(),
-  selectFromList: jest.fn(),
-  extractFrontmatterAndContent: jest.fn(),
-  walk: jest.fn(),
-  removeEmptyDirectories: jest.fn(),
-}));
+jest.mock("../src/utils", () => {
+  const original = jest.requireActual("../src/utils");
+  return {
+    ...original,
+    question: jest.fn(),
+    slugify: jest.fn(),
+    selectFromList: jest.fn(),
+    walk: jest.fn(),
+    removeEmptyDirectories: jest.fn(),
+  };
+});
 
 jest.mock("../src/peer", () => ({
   getPeerAliases: jest.fn(),
@@ -47,6 +46,10 @@ describe("report", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    rl.close();
   });
 
   describe("createDraft", () => {
@@ -109,18 +112,13 @@ destinationPath: ""
       getGroups.mockResolvedValue(new Map());
       const reportContent = '---\nto: ["peer1"]\nexcept: []\n---\n\n# Title';
       const entries = ["/fake/path/entries/report.md"];
-      const { walk, extractFrontmatterAndContent } = require("../src/utils");
+      const { walk } = require("../src/utils");
       walk.mockImplementation(async function* () {
         for (const entry of entries) {
           yield entry;
         }
       });
       fs.readFile.mockResolvedValue(reportContent);
-      extractFrontmatterAndContent.mockReturnValue({
-        frontmatter: { to: ["peer1"], except: [] },
-        body: "# Title",
-        error: null,
-      });
       getPeerPath.mockReturnValue("/fake/path/peers/peer1");
       fs.readdir.mockResolvedValue([]);
       await syncReports(DATA_PATH);
@@ -136,18 +134,13 @@ destinationPath: ""
       const reportContent =
         '---\nto: ["peer1"]\nexcept: []\nsourcePath: "source.txt"\n---';
       const entries = ["/fake/path/entries/report.md"];
-      const { walk, extractFrontmatterAndContent } = require("../src/utils");
+      const { walk } = require("../src/utils");
       walk.mockImplementation(async function* () {
         for (const entry of entries) {
           yield entry;
         }
       });
       fs.readFile.mockResolvedValue(reportContent);
-      extractFrontmatterAndContent.mockReturnValue({
-        frontmatter: { to: ["peer1"], except: [], sourcePath: "source.txt" },
-        body: "",
-        error: null,
-      });
       fs.stat.mockResolvedValue({ isDirectory: () => false });
       getPeerPath.mockReturnValue("/fake/path/peers/peer1");
       fs.readdir.mockResolvedValue([]);
@@ -166,32 +159,42 @@ destinationPath: ""
       const reportContent =
         '---\nto: ["peer1"]\nexcept: []\nsourcePath: "source_dir"\n---';
       const entries = ["/fake/path/entries/report.md"];
-      const { walk, extractFrontmatterAndContent } = require("../src/utils");
+      const { walk } = require("../src/utils");
       walk.mockImplementation(async function* (p) {
         if (p === "/fake/path/entries") {
           for (const entry of entries) yield entry;
         } else if (p === path.resolve("/fake/path/entries", "source_dir")) {
-          yield path.resolve("/fake/path/entries", "source_dir", "file.txt");
+          yield path.resolve("/fake/path/entries", "source_dir", "file1.txt");
+          yield path.resolve("/fake/path/entries", "source_dir", "file2.txt");
         }
       });
       fs.readFile.mockResolvedValue(reportContent);
-      extractFrontmatterAndContent.mockReturnValue({
-        frontmatter: { to: ["peer1"], except: [], sourcePath: "source_dir" },
-        body: "",
-        error: null,
-      });
       fs.stat.mockResolvedValue({ isDirectory: () => true });
       getPeerPath.mockReturnValue("/fake/path/peers/peer1");
       fs.readdir.mockResolvedValue([]);
       await syncReports(DATA_PATH);
-      const expectedSourcePath = path.resolve(
+      const expectedSourcePath1 = path.resolve(
         "/fake/path/entries",
         "source_dir",
-        "file.txt",
+        "file1.txt",
       );
-      const expectedDestPath =
-        "/fake/path/peers/peer1/outgoing/source_dir/file.txt";
-      expect(fs.cp).toHaveBeenCalledWith(expectedSourcePath, expectedDestPath);
+      const expectedDestPath1 =
+        "/fake/path/peers/peer1/outgoing/source_dir/file1.txt";
+      expect(fs.cp).toHaveBeenCalledWith(
+        expectedSourcePath1,
+        expectedDestPath1,
+      );
+      const expectedSourcePath2 = path.resolve(
+        "/fake/path/entries",
+        "source_dir",
+        "file2.txt",
+      );
+      const expectedDestPath2 =
+        "/fake/path/peers/peer1/outgoing/source_dir/file2.txt";
+      expect(fs.cp).toHaveBeenCalledWith(
+        expectedSourcePath2,
+        expectedDestPath2,
+      );
     });
 
     it("should remove obsolete files", async () => {
@@ -220,26 +223,24 @@ destinationPath: ""
 
     it("should throw an error for malformed frontmatter", async () => {
       getPeerAliases.mockResolvedValue(["peer1"]);
-      const { walk, extractFrontmatterAndContent } = require("../src/utils");
+      const { walk } = require("../src/utils");
       walk.mockImplementation(async function* () {
         yield "/fake/path/entries/report.md";
       });
-      extractFrontmatterAndContent.mockReturnValue({
-        error: new Error("YAML error"),
-      });
+      fs.readFile.mockResolvedValue("---\ninvalid-yaml\n---");
 
       await expect(syncReports(DATA_PATH)).rejects.toThrow(
-        "Error parsing YAML for report draft /fake/path/entries/report.md: YAML error",
+        "Error parsing YAML for report draft /fake/path/entries/report.md: Invalid frontmatter",
       );
     });
 
     it("should throw an error for missing required fields", async () => {
       getPeerAliases.mockResolvedValue(["peer1"]);
-      const { walk, extractFrontmatterAndContent } = require("../src/utils");
+      const { walk } = require("../src/utils");
       walk.mockImplementation(async function* () {
         yield "/fake/path/entries/report.md";
       });
-      extractFrontmatterAndContent.mockReturnValue({ frontmatter: {} });
+      fs.readFile.mockResolvedValue("---\nfoo: bar\n---");
 
       await expect(syncReports(DATA_PATH)).rejects.toThrow(
         "Report draft /fake/path/entries/report.md is missing required fields (to, except).",
@@ -249,13 +250,13 @@ destinationPath: ""
     it("should throw an error for invalid group name", async () => {
       getPeerAliases.mockResolvedValue(["peer1"]);
       getGroups.mockResolvedValue(new Map());
-      const { walk, extractFrontmatterAndContent } = require("../src/utils");
+      const { walk } = require("../src/utils");
       walk.mockImplementation(async function* () {
         yield "/fake/path/entries/report.md";
       });
-      extractFrontmatterAndContent.mockReturnValue({
-        frontmatter: { to: ["group:invalid-group"], except: [] },
-      });
+      fs.readFile.mockResolvedValue(
+        '---\nto: ["group:invalid-group"]\nexcept: []\n---',
+      );
 
       await expect(syncReports(DATA_PATH)).rejects.toThrow(
         "Invalid group name 'invalid-group' found in report draft.",
@@ -265,13 +266,13 @@ destinationPath: ""
     it("should throw an error for invalid peer alias", async () => {
       getPeerAliases.mockResolvedValue(["peer1"]);
       getGroups.mockResolvedValue(new Map());
-      const { walk, extractFrontmatterAndContent } = require("../src/utils");
+      const { walk } = require("../src/utils");
       walk.mockImplementation(async function* () {
         yield "/fake/path/entries/report.md";
       });
-      extractFrontmatterAndContent.mockReturnValue({
-        frontmatter: { to: ["invalid-peer"], except: [] },
-      });
+      fs.readFile.mockResolvedValue(
+        '---\nto: ["invalid-peer"]\nexcept: []\n---',
+      );
 
       await expect(syncReports(DATA_PATH)).rejects.toThrow(
         "Invalid peer alias 'invalid-peer' found in report draft.",
@@ -281,17 +282,13 @@ destinationPath: ""
     it("should throw an error for inaccessible source path", async () => {
       getPeerAliases.mockResolvedValue(["peer1"]);
       getGroups.mockResolvedValue(new Map());
-      const { walk, extractFrontmatterAndContent } = require("../src/utils");
+      const { walk } = require("../src/utils");
       walk.mockImplementation(async function* () {
         yield "/fake/path/entries/report.md";
       });
-      extractFrontmatterAndContent.mockReturnValue({
-        frontmatter: {
-          to: ["peer1"],
-          except: [],
-          sourcePath: "nonexistent.txt",
-        },
-      });
+      fs.readFile.mockResolvedValue(
+        '---\nto: ["peer1"]\nexcept: []\nsourcePath: "nonexistent.txt"\n---',
+      );
       fs.stat.mockRejectedValue(new Error("ENOENT"));
 
       await expect(syncReports(DATA_PATH)).rejects.toThrow(

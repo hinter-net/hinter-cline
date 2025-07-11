@@ -4,12 +4,7 @@ const {
   getPeerConfig,
   updatePeerConfig,
 } = require("../src/peer");
-const {
-  rl,
-  question,
-  isValidSlug,
-  selectFromList,
-} = require("../src/utils");
+const { rl, question, selectFromList } = require("../src/utils");
 
 jest.mock("../src/peer", () => ({
   getPeerAliases: jest.fn(),

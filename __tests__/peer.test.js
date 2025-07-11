@@ -8,11 +8,7 @@ const {
   getPeerConfig,
   updatePeerConfig,
 } = require("../src/peer");
-const {
-  rl,
-  question,
-  selectFromList,
-} = require("../src/utils");
+const { rl, question, selectFromList } = require("../src/utils");
 
 jest.mock("fs", () => ({
   promises: {
