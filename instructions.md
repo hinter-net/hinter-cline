@@ -9,21 +9,22 @@ This project is designed to work across all operating systems and be accessible 
 2. (OPTIONAL) The technically inclined may choose to build the Docker image locally.
 
 3. Start `hinter-cline` in always restart mode using:
-    ```sh
-    docker run -d --name my-hinter-cline --restart=always -p8080:8080 -v"$(pwd)/hinter-core-data":/app/hinter-core-data bbenligiray/hinter-cline:0.0.1
-    ```
+
+   ```sh
+   docker run -d --name my-hinter-cline --restart=always -p8080:8080 -v"$(pwd)/hinter-core-data":/app/hinter-core-data bbenligiray/hinter-cline:0.0.1
+   ```
 
 4. Open your browser and navigate to [`localhost:8080`](http://localhost:8080) to see the VS Code interface.
-    Since `hinter-cline` is running in always restart mode, VS Code will always be available at `localhost:8080`, even after you restart your machine.
+   Since `hinter-cline` is running in always restart mode, VS Code will always be available at `localhost:8080`, even after you restart your machine.
 
 5. Click the Cline icon on the VS Code sidebar.
-    Select an API provider and enter your API key.
+   Select an API provider and enter your API key.
 
-    If you are not a paid subscriber to any of these API providers, consider using one that offers a free trial for testing.
-    For example:
-    - Create an [OpenRouter](https://openrouter.ai/) account
-    - Create an API key
-    - Configure Cline to use [`deepseek/deepseek-chat-v3-0324:free`](https://openrouter.ai/deepseek/deepseek-chat-v3-0324:free)
+   If you are not a paid subscriber to any of these API providers, consider using one that offers a free trial for testing.
+   For example:
+   - Create an [OpenRouter](https://openrouter.ai/) account
+   - Create an API key
+   - Configure Cline to use [`deepseek/deepseek-chat-v3-0324:free`](https://openrouter.ai/deepseek/deepseek-chat-v3-0324:free)
 
 ## Working with Cline
 

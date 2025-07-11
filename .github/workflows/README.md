@@ -30,10 +30,10 @@ Before running the workflow, you need to configure the following secrets in your
    - Go to your repository → Settings → Secrets and variables → Actions
    - Add the following repository secrets:
 
-| Secret Name | Description |
-|-------------|-------------|
-| `DOCKER_USERNAME` | Your Docker Hub username |
-| `DOCKER_TOKEN` | Your Docker Hub access token (created in step 1) |
+| Secret Name       | Description                                      |
+| ----------------- | ------------------------------------------------ |
+| `DOCKER_USERNAME` | Your Docker Hub username                         |
+| `DOCKER_TOKEN`    | Your Docker Hub access token (created in step 1) |
 
 ### How to Run
 

@@ -9,7 +9,20 @@
   },
   "scripts": {
     "docker:build": "docker build -t bbenligiray/hinter-cline:latest .",
-    "docker:start": "docker run -it --rm -p8080:8080 -v./hinter-core-data:/app/hinter-core-data bbenligiray/hinter-cline:latest"
+    "docker:start": "docker run -it --rm -p8080:8080 -v./hinter-core-data:/app/hinter-core-data bbenligiray/hinter-cline:latest",
+    "prettier": "prettier --write \"./**/*.{js,md}\"",
+    "prettier:check": "prettier --check \"./**/*.{js,md}\"",
+    "start": "node src/index.js",
+    "test": "jest"
   },
-  "dependencies": {}
+  "bin": {
+    "hinter-helper": "./src/index.js"
+  },
+  "dependencies": {
+    "jest": "^30.0.4",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
 }

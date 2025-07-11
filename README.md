@@ -8,17 +8,23 @@ See [instructions](./instructions.md) to run `hinter-cline` in a Docker containe
 ## Features
 
 `hinter-cline` wraps two solutions in a Docker container for portability and security:
+
 - [`code-server`,](https://github.com/coder/code-server) an enhanced fork of VS Code that you can use through your browser
 - [Cline,](https://github.com/cline/cline) a coding assistant for VS Code
 
-In addition, it implements `hinter-helper`, a simple CLI tool to be used in a `hinter-cline` container for the following hinter workflows:
-- Adding, editing, or removing peers
-- Creating report drafts
-- Posting reports to peers
+### `hinter-helper`
+
+In addition, `hinter-cline` includes [`hinter-helper`,](./hinter-helper.md) an interactive CLI tool that facilitates some hinter workflows.
+
+Its features include:
+
+- Managing peers (add, edit, remove)
+- Organizing peers into groups
+- Creating and posting flexible report drafts to peers and groups
 
 ## `hinter-core-data/` additions
 
 `hinter-cline` extends the [`hinter-core-data/` structure of `hinter-core`](https://github.com/bbenligiray/hinter-core?tab=readme-ov-file#hinter-core-data) by adding:
 
-- `entries/`: A directory for your private knowledge base, including outgoing reports and report drafts.
+- `entries/`: A directory for your private knowledge base, including outgoing report drafts.
 - `.git/`:A [Git](https://git-scm.com/) directory containing the `hinter-core-data/` version history.
