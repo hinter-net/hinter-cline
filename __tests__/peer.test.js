@@ -9,9 +9,8 @@ const {
   updatePeerConfig,
 } = require("../src/peer");
 const {
+  rl,
   question,
-  isValidSlug,
-  isValidPublicKey,
   selectFromList,
 } = require("../src/utils");
 
@@ -26,18 +25,24 @@ jest.mock("fs", () => ({
   },
 }));
 
-jest.mock("../src/utils", () => ({
-  question: jest.fn(),
-  isValidSlug: jest.fn(),
-  isValidPublicKey: jest.fn(),
-  selectFromList: jest.fn(),
-}));
+jest.mock("../src/utils", () => {
+  const original = jest.requireActual("../src/utils");
+  return {
+    ...original,
+    question: jest.fn(),
+    selectFromList: jest.fn(),
+  };
+});
 
 describe("peer", () => {
   const DATA_PATH = "/fake/path";
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    rl.close();
   });
 
   describe("getPeerPath", () => {
@@ -101,8 +106,6 @@ describe("peer", () => {
       question
         .mockResolvedValueOnce(newPeerAlias)
         .mockResolvedValueOnce(publicKey);
-      isValidSlug.mockReturnValue(true);
-      isValidPublicKey.mockReturnValue(true);
       fs.readdir.mockResolvedValue([]);
       await addPeer(DATA_PATH);
       const expectedPath = getPeerPath(DATA_PATH, newPeerAlias);
@@ -117,14 +120,12 @@ describe("peer", () => {
 
     it("should not add a peer with an invalid alias", async () => {
       question.mockResolvedValueOnce("invalid alias");
-      isValidSlug.mockReturnValue(false);
       await addPeer(DATA_PATH);
       expect(fs.mkdir).not.toHaveBeenCalled();
     });
 
     it("should not add a peer if alias already exists", async () => {
       question.mockResolvedValueOnce("existing-peer");
-      isValidSlug.mockReturnValue(true);
       fs.readdir.mockResolvedValue([
         { name: "existing-peer", isDirectory: () => true },
       ]);
@@ -136,8 +137,6 @@ describe("peer", () => {
       question
         .mockResolvedValueOnce("new-peer")
         .mockResolvedValueOnce("invalid-key");
-      isValidSlug.mockReturnValue(true);
-      isValidPublicKey.mockReturnValue(false);
       fs.readdir.mockResolvedValue([]);
       await addPeer(DATA_PATH);
       expect(fs.mkdir).not.toHaveBeenCalled();
@@ -147,8 +146,6 @@ describe("peer", () => {
       question
         .mockResolvedValueOnce("new-peer")
         .mockResolvedValueOnce("a".repeat(64));
-      isValidSlug.mockReturnValue(true);
-      isValidPublicKey.mockReturnValue(true);
       fs.readdir.mockResolvedValue([
         { name: "existing-peer", isDirectory: () => true },
       ]);
@@ -200,7 +197,6 @@ describe("peer", () => {
       question
         .mockResolvedValueOnce("1")
         .mockResolvedValueOnce("invalid alias");
-      isValidSlug.mockReturnValue(false);
       await managePeer(DATA_PATH);
       expect(fs.rename).not.toHaveBeenCalled();
     });
@@ -214,7 +210,6 @@ describe("peer", () => {
       question
         .mockResolvedValueOnce("1")
         .mockResolvedValueOnce("existing-peer");
-      isValidSlug.mockReturnValue(true);
       await managePeer(DATA_PATH);
       expect(fs.rename).not.toHaveBeenCalled();
     });
@@ -225,7 +220,6 @@ describe("peer", () => {
       ]);
       selectFromList.mockResolvedValue(["peer1"]);
       question.mockResolvedValueOnce("1").mockResolvedValueOnce("new-alias");
-      isValidSlug.mockReturnValue(true);
       await managePeer(DATA_PATH);
       expect(fs.rename).toHaveBeenCalledWith(
         getPeerPath(DATA_PATH, "peer1"),
@@ -239,7 +233,6 @@ describe("peer", () => {
       ]);
       selectFromList.mockResolvedValue(["peer1"]);
       question.mockResolvedValueOnce("2").mockResolvedValueOnce("invalid-key");
-      isValidPublicKey.mockReturnValue(false);
       await managePeer(DATA_PATH);
       expect(fs.writeFile).not.toHaveBeenCalled();
     });
@@ -251,7 +244,6 @@ describe("peer", () => {
       ]);
       selectFromList.mockResolvedValue(["peer1"]);
       question.mockResolvedValueOnce("2").mockResolvedValueOnce("b".repeat(64));
-      isValidPublicKey.mockReturnValue(true);
       fs.readFile.mockResolvedValueOnce(
         JSON.stringify({ publicKey: "b".repeat(64) }),
       ); // peer2 config
@@ -269,7 +261,6 @@ describe("peer", () => {
       selectFromList.mockResolvedValue(["peer1"]);
       const newPublicKey = "b".repeat(64);
       question.mockResolvedValueOnce("2").mockResolvedValueOnce(newPublicKey);
-      isValidPublicKey.mockReturnValue(true);
       fs.readFile.mockResolvedValue(
         JSON.stringify({ publicKey: "a".repeat(64) }),
       );
