@@ -17,8 +17,8 @@ RUN mkdir -p /root/.local/share/code-server/User && \
 # Cline settings are not stored in settings.json so we can't turn off Cline telemetry here
 # Cline claims to respect the VS Code telemetry settings but the user should turn it off manually as well
 
-# Copy over and install hinter-core
-WORKDIR /app
+# Copy over and install hinter-cline
+WORKDIR /hinter-cline
 COPY package*.json .
 RUN npm i
 COPY .clinerules/ ./.clinerules/
@@ -26,7 +26,7 @@ COPY .clineignore ./.clineignore
 COPY src/ ./src/
 
 # Copy startup script and make it executable
-COPY startup.sh /app/startup.sh
-RUN chmod +x /app/startup.sh
+COPY startup.sh /hinter-cline/startup.sh
+RUN chmod +x /hinter-cline/startup.sh
 
-CMD ["/app/startup.sh"]
+CMD ["/hinter-cline/startup.sh"]

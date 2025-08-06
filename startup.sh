@@ -3,7 +3,7 @@
 # Startup script for hinter-cline container
 # Initializes hinter-core-data/ as a git repository if it hasn't been initialized
 
-HINTER_DATA_DIR="/app/hinter-core-data"
+HINTER_DATA_DIR="/hinter-cline/hinter-core-data"
 
 echo "Starting hinter-cline initialization..."
 
@@ -65,4 +65,4 @@ else
 fi
 
 echo "Starting code-server..."
-exec code-server --auth none --disable-telemetry --bind-addr 0.0.0.0:8080 /app
+exec code-server --auth none --disable-telemetry --bind-addr 0.0.0.0:8080 /hinter-cline
