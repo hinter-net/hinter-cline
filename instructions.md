@@ -11,7 +11,7 @@ This project is designed to work across all operating systems and be accessible 
 3. Start `hinter-cline` in always restart mode using:
 
    ```sh
-   docker run -d --name my-hinter-cline --restart=always -p8080:8080 -v"$(pwd)/hinter-core-data":/app/hinter-core-data bbenligiray/hinter-cline:0.0.1
+   docker run -d --name my-hinter-cline --restart=always -p8080:8080 -v"$(pwd)/hinter-core-data":/hinter-cline/hinter-core-data bbenligiray/hinter-cline:0.0.1
    ```
 
 4. Open your browser and navigate to [`localhost:8080`](http://localhost:8080) to see the VS Code interface.
