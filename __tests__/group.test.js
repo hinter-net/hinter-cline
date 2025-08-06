@@ -34,8 +34,9 @@ describe("group", () => {
   });
 
   describe("getGroups", () => {
-    it("should return a map of groups and their members", async () => {
-      getPeerAliases.mockResolvedValue(["peer1", "peer2", "peer3"]);
+    it("should return a map of groups and their members, including the 'all' group", async () => {
+      const peerAliases = ["peer1", "peer2", "peer3"];
+      getPeerAliases.mockResolvedValue(peerAliases);
       getPeerConfig.mockImplementation((_, alias) => {
         const configs = {
           peer1: { "hinter-cline": { groups: ["group1"] } },
@@ -47,12 +48,14 @@ describe("group", () => {
       const groups = await group.getGroups(DATA_PATH);
       expect(groups.get("group1")).toEqual(["peer1", "peer2"]);
       expect(groups.get("group2")).toEqual(["peer2", "peer3"]);
+      expect(groups.get("all")).toEqual(peerAliases);
     });
 
-    it("should return an empty map if no peers exist", async () => {
+    it("should return a map with only the 'all' group if no peers exist", async () => {
       getPeerAliases.mockResolvedValue([]);
       const groups = await group.getGroups(DATA_PATH);
-      expect(groups.size).toBe(0);
+      expect(groups.size).toBe(1);
+      expect(groups.get("all")).toEqual([]);
     });
   });
 
@@ -74,6 +77,15 @@ describe("group", () => {
       question.mockResolvedValue("invalid group");
       await group.addGroup(DATA_PATH);
       expect(updatePeerConfig).not.toHaveBeenCalled();
+    });
+
+    it('should not add a group named "all"', async () => {
+      question.mockResolvedValue("all");
+      const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+      await group.addGroup(DATA_PATH);
+      expect(logSpy).toHaveBeenCalledWith('The group name "all" is reserved.');
+      expect(updatePeerConfig).not.toHaveBeenCalled();
+      logSpy.mockRestore();
     });
 
     it("should not add a group if alias already exists", async () => {
@@ -127,12 +139,26 @@ describe("group", () => {
   });
 
   describe("manageGroup", () => {
-    it("should do nothing if no groups exist", async () => {
+    it("should do nothing if no manageable groups exist", async () => {
       getPeerAliases.mockResolvedValue([]);
       const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
       await group.manageGroup(DATA_PATH);
       expect(logSpy).toHaveBeenCalledWith("No groups to manage.");
       logSpy.mockRestore();
+    });
+
+    it("should not show the 'all' group in the list of manageable groups", async () => {
+      getPeerAliases.mockResolvedValue(["peer1"]);
+      getPeerConfig.mockResolvedValue({
+        "hinter-cline": { groups: ["group1"] },
+      });
+      selectFromList.mockResolvedValue([]);
+      await group.manageGroup(DATA_PATH);
+      expect(selectFromList).toHaveBeenCalledWith(
+        ["group1"],
+        "Select a group to manage.",
+        { allowMultiple: false },
+      );
     });
 
     it("should do nothing if no group is selected", async () => {

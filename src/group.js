@@ -19,6 +19,10 @@ async function getGroups(dataPath) {
       groups.get(group).push(peerAlias);
     }
   }
+
+  // Add the implicit "all" group last to override user-defined versions
+  groups.set("all", peerAliases);
+
   return groups;
 }
 
@@ -27,6 +31,10 @@ async function addGroup(dataPath) {
   const newGroupAlias = await question(
     "Enter new group alias (e.g., ai-developers): ",
   );
+  if (newGroupAlias === "all") {
+    console.log('The group name "all" is reserved.');
+    return;
+  }
   if (!isValidSlug(newGroupAlias)) {
     console.log(
       "Invalid alias format. Use lowercase letters, numbers, and single hyphens.",
@@ -77,12 +85,12 @@ async function addGroup(dataPath) {
 async function manageGroup(dataPath) {
   console.log("\n--- Manage a group ---");
   const groups = await getGroups(dataPath);
-  if (groups.size === 0) {
+
+  const groupAliases = Array.from(groups.keys()).filter((g) => g !== "all");
+  if (groupAliases.length === 0) {
     console.log("No groups to manage.");
     return;
   }
-
-  const groupAliases = Array.from(groups.keys());
   let selectedGroupAliases;
   try {
     selectedGroupAliases = await selectFromList(
