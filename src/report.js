@@ -2,7 +2,7 @@ const fs = require("fs").promises;
 const path = require("path");
 const {
   question,
-  slugify,
+  sanitizeFilenameWithoutExtension,
   selectFromList,
   extractFrontmatterAndContent,
   walk,
@@ -65,7 +65,10 @@ destinationPath: ""
 # ${title}
 
 `;
-  const filePath = path.join(entriesPath, `${slugify(title)}.md`);
+  const filePath = path.join(
+    entriesPath,
+    `${sanitizeFilenameWithoutExtension(title)}.md`,
+  );
   await fs.writeFile(filePath, template);
   console.log(`Draft created at: ${filePath}`);
 }

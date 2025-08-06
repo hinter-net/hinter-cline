@@ -2,7 +2,12 @@ const fs = require("fs").promises;
 const path = require("path");
 const yaml = require("js-yaml");
 const { createDraft, syncReports } = require("../src/report");
-const { rl, question, slugify, selectFromList } = require("../src/utils");
+const {
+  rl,
+  question,
+  sanitizeFilenameWithoutExtension,
+  selectFromList,
+} = require("../src/utils");
 const { getPeerAliases, getPeerPath } = require("../src/peer");
 const { getGroups } = require("../src/group");
 
@@ -25,7 +30,7 @@ jest.mock("../src/utils", () => {
   return {
     ...original,
     question: jest.fn(),
-    slugify: jest.fn(),
+    sanitizeFilenameWithoutExtension: jest.fn((text) => text),
     selectFromList: jest.fn(),
     walk: jest.fn(),
     removeEmptyDirectories: jest.fn(),
@@ -55,11 +60,9 @@ describe("report", () => {
   describe("createDraft", () => {
     it("should create a new draft", async () => {
       const title = "Test Title";
-      const slug = "test-title";
       const to = ["peer1"];
       const except = [];
       question.mockResolvedValue(title);
-      slugify.mockReturnValue(slug);
       getPeerAliases.mockResolvedValue(["peer1"]);
       getGroups.mockResolvedValue(new Map());
       selectFromList.mockResolvedValueOnce(to).mockResolvedValueOnce(except);
@@ -74,7 +77,11 @@ destinationPath: ""
 # ${title}
 
 `;
-      const expectedPath = path.join(DATA_PATH, "entries", `${slug}.md`);
+      const expectedPath = path.join(
+        DATA_PATH,
+        "entries",
+        `${sanitizeFilenameWithoutExtension(title)}.md`,
+      );
       expect(fs.writeFile).toHaveBeenCalledWith(expectedPath, expectedTemplate);
     });
 

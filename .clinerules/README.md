@@ -14,7 +14,7 @@ The user's information is organized into three main areas.
 You are expected to navigate and reference these as the primary sources of truth.
 
 - **`entries/`**: This is the user's private knowledge base, which includes their report drafts.
-You should consider its contents the primary source of truth for the user's own information.
+  You should consider its contents the primary source of truth for the user's own information.
 
 - **`peers/{alias}/incoming/`**: This directory contains reports received from peers.
 

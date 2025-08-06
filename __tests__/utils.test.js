@@ -5,7 +5,7 @@ const {
   rl,
   isValidSlug,
   isValidPublicKey,
-  slugify,
+  sanitizeFilenameWithoutExtension,
   displayList,
   selectFromList,
   question,
@@ -82,12 +82,26 @@ describe("utils", () => {
     });
   });
 
-  describe("slugify", () => {
-    it("should correctly slugify a string", () => {
-      expect(slugify("A Test String")).toBe("a-test-string");
-      expect(slugify("  Another--Test  ")).toBe("another-test");
-      expect(slugify("A_Third_Test")).toBe("a-third-test");
-      expect(slugify("A fourth test!")).toBe("a-fourth-test");
+  describe("sanitizeFilenameWithoutExtension", () => {
+    it("should replace invalid characters with a dash", () => {
+      expect(sanitizeFilenameWithoutExtension('a<b>c:d"e/f\\g|h?i*j')).toBe(
+        "a-b-c-d-e-f-g-h-i-j",
+      );
+    });
+
+    it("should replace a leading space with a dash", () => {
+      expect(sanitizeFilenameWithoutExtension(" leading-space")).toBe(
+        "-leading-space",
+      );
+    });
+
+    it("should not affect valid filenames", () => {
+      expect(sanitizeFilenameWithoutExtension("a-valid-filename")).toBe(
+        "a-valid-filename",
+      );
+      expect(sanitizeFilenameWithoutExtension("another one")).toBe(
+        "another one",
+      );
     });
   });
 
