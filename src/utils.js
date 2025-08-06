@@ -22,14 +22,20 @@ function isValidPublicKey(key) {
   return /^[a-f0-9]{64}$/.test(key);
 }
 
-function slugify(text) {
-  return text
-    .replaceAll(/[^\d\sA-Za-z]+/g, " ")
-    .replaceAll(/\s+/g, " ")
-    .trim()
-    .split(" ")
-    .join("-")
-    .toLowerCase();
+function sanitizeFilenameWithoutExtension(text) {
+  // Replace characters that are not allowed in filenames with a dash.
+  // Windows: < > : " / \ | ? * and NUL
+  // macOS: : /
+  // Linux: / and NUL
+  let sanitized = text.replace(/[<>:"/\\|?*\x00]/g, "-");
+
+  // Windows does not allow leading/trailing spaces or a trailing period.
+  // Since we will append ".md" to the filename, we just need to handle the leading space.
+  if (sanitized.startsWith(" ")) {
+    sanitized = "-" + sanitized.substring(1);
+  }
+
+  return sanitized;
 }
 
 function displayList(items) {
@@ -143,7 +149,7 @@ module.exports = {
   question,
   isValidSlug,
   isValidPublicKey,
-  slugify,
+  sanitizeFilenameWithoutExtension,
   displayList,
   selectFromList,
   extractFrontmatterAndContent,
