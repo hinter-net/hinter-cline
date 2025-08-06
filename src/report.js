@@ -26,9 +26,10 @@ async function createDraft(dataPath) {
 
   const peerAliases = await getPeerAliases(dataPath);
   const groups = await getGroups(dataPath);
-  const groupAliases = Array.from(groups.keys());
+  const groupAliases = Array.from(groups.keys()).filter((g) => g !== "all");
 
   const availableRecipients = [
+    "group:all",
     ...groupAliases.map((groupAlias) => `group:${groupAlias}`),
     ...peerAliases,
   ];
