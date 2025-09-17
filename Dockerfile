@@ -1,12 +1,10 @@
 FROM ubuntu:24.04
 
-# Install dependencies and apply placeholder git user config
+# Install dependencies
 RUN apt-get update && apt-get install -y curl git \
  && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
  && apt-get install -y nodejs \
- && apt-get clean && rm -rf /var/lib/apt/lists/* \
- && git config --global user.name "hinter-core" \
- && git config --global user.email "hinter-core"
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install code-server and Cline
 RUN curl -fsSL https://code-server.dev/install.sh | sh

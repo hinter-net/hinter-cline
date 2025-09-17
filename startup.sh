@@ -7,6 +7,21 @@ HINTER_DATA_DIR="/hinter-cline/hinter-core-data"
 
 echo "Starting hinter-cline initialization..."
 
+# Set up git configuration if not already set
+if [ -z "$(git config --global user.name)" ]; then
+    echo "Setting git user.name to 'hinter'..."
+    git config --global user.name "hinter"
+else
+    echo "Git user.name already configured as: $(git config --global user.name)"
+fi
+
+if [ -z "$(git config --global user.email)" ]; then
+    echo "Setting git user.email to 'hinter@localhost'..."
+    git config --global user.email "hinter@localhost"
+else
+    echo "Git user.email already configured as: $(git config --global user.email)"
+fi
+
 # Set up VS Code settings for the current user if they don't exist
 VSCODE_SETTINGS_DIR="$HOME/.local/share/code-server/User"
 VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
