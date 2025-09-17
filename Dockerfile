@@ -9,11 +9,6 @@ RUN apt-get update && apt-get install -y curl git \
 # Install code-server and Cline
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 RUN code-server --install-extension saoudrizwan.claude-dev
-# telemetry.telemetryLevel:off is known to not turn off all VS Code telemetry
-RUN mkdir -p /root/.local/share/code-server/User && \
-  echo '{\n  "workbench.colorTheme": "Default Dark+",\n  "telemetry.telemetryLevel": "off"\n}' > /root/.local/share/code-server/User/settings.json
-# Cline settings are not stored in settings.json so we can't turn off Cline telemetry here
-# Cline claims to respect the VS Code telemetry settings but the user should turn it off manually as well
 
 # Copy over and install hinter-cline
 WORKDIR /hinter-cline

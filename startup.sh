@@ -23,6 +23,8 @@ else
 fi
 
 # Set up VS Code settings for the current user if they don't exist
+# telemetry.telemetryLevel:off is known to not turn off all VS Code telemetry
+# Cline claims to respect the VS Code telemetry settings
 VSCODE_SETTINGS_DIR="$HOME/.local/share/code-server/User"
 VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
 
