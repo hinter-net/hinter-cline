@@ -7,6 +7,22 @@ HINTER_DATA_DIR="/hinter-cline/hinter-core-data"
 
 echo "Starting hinter-cline initialization..."
 
+# Set up VS Code settings for the current user if they don't exist
+VSCODE_SETTINGS_DIR="$HOME/.local/share/code-server/User"
+VSCODE_SETTINGS_FILE="$VSCODE_SETTINGS_DIR/settings.json"
+
+if [ ! -f "$VSCODE_SETTINGS_FILE" ]; then
+    echo "Creating VS Code settings for current user..."
+    mkdir -p "$VSCODE_SETTINGS_DIR"
+    echo '{
+  "workbench.colorTheme": "Default Dark+",
+  "telemetry.telemetryLevel": "off"
+}' > "$VSCODE_SETTINGS_FILE"
+    echo "VS Code settings created with dark theme default and disabled telemetry"
+else
+    echo "VS Code settings already exist, preserving user preferences"
+fi
+
 # Check if hinter-core-data directory exists
 if [ -d "$HINTER_DATA_DIR" ]; then
     echo "Found hinter-core-data directory at $HINTER_DATA_DIR"
