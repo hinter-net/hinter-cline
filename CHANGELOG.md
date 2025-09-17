@@ -1,5 +1,11 @@
 # hinter-cline
 
+## 0.2.2
+
+### Patch Changes
+
+- 04e1bf0: The .gitignore created by the startup script now includes .storage
+
 ## 0.2.1
 
 ### Patch Changes
