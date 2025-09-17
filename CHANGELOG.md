@@ -1,5 +1,12 @@
 # hinter-cline
 
+## 0.2.3
+
+### Patch Changes
+
+- 712af1f: The startup script now generates placeholder git user config at runtime to also cover non-root users
+- 712af1f: The startup script now generates default VS Code settings (dark mode and no telemetry) at runtime also if the user is root
+
 ## 0.2.2
 
 ### Patch Changes
