@@ -47,6 +47,8 @@ Thumbs.db
 
 # hinter-core keypair
 .env
+# hinter-core hypercore storage
+.storage
 EOF
         echo ".gitignore file created"
     else
