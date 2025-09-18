@@ -3,6 +3,9 @@
 # Startup script for hinter-cline container
 # Initializes hinter-core-data/ as a git repository if it hasn't been initialized
 
+export HOME=/tmp/home
+mkdir -p "$HOME"
+
 HINTER_DATA_DIR="/hinter-cline/hinter-core-data"
 
 echo "Starting hinter-cline initialization..."
