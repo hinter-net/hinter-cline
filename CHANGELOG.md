@@ -1,5 +1,11 @@
 # hinter-cline
 
+## 0.2.4
+
+### Patch Changes
+
+- bfa44ed: Define the home directory in the startup script
+
 ## 0.2.3
 
 ### Patch Changes
