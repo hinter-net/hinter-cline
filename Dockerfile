@@ -13,7 +13,7 @@ RUN code-server --install-extension saoudrizwan.claude-dev
 # Copy over and install hinter-cline
 WORKDIR /hinter-cline
 COPY package*.json .
-RUN npm i
+RUN npm ci
 COPY .clinerules/ ./.clinerules/
 COPY .clineignore ./.clineignore
 COPY src/ ./src/
