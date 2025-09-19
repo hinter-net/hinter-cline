@@ -1,5 +1,11 @@
 # hinter-cline
 
+## 0.2.5
+
+### Patch Changes
+
+- cea7461: Cline is installed in the startup script rather than while building the Docker image for it to apply to the current user
+
 ## 0.2.4
 
 ### Patch Changes
