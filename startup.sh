@@ -102,5 +102,7 @@ else
     echo "This may be because the volume mount is not properly configured"
 fi
 
+code-server --install-extension saoudrizwan.claude-dev
+
 echo "Starting code-server..."
 exec code-server --auth none --disable-telemetry --bind-addr 0.0.0.0:8080 /hinter-cline

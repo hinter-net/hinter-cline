@@ -6,9 +6,9 @@ RUN apt-get update && apt-get install -y curl git \
  && apt-get install -y nodejs \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install code-server and Cline
+# Install code-server
 RUN curl -fsSL https://code-server.dev/install.sh | sh
-RUN code-server --install-extension saoudrizwan.claude-dev
+# Cline is installed in the startup script
 
 # Copy over and install hinter-cline
 WORKDIR /hinter-cline
